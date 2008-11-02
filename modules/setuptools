@@ -1,0 +1,50 @@
+# -*- Makefile -*-
+
+# http://peak.telecommunity.com/DevCenter/setuptools
+SETUPTOOLS_URL = http://cheeseshop.python.org/packages/2.5/s/setuptools/setuptools-$(SETUPTOOLS_VERSION).egg
+
+modulelist::
+	@/bin/echo -e "setuptools:\t$(SETUPTOOLS_VERSION)\tSetup tools for Python"
+
+
+setuptools: python25 setuptools-download setuptools-install
+
+.PHONY: setuptools
+
+################################################################################
+# Setup: create targets for:
+#   setuptools-download
+#   setuptools-unpack
+#   setuptools-do-unpack
+################################################################################
+
+$(eval $(call setup,setuptools,$(SETUPTOOLS_URL),$(SETUPTOOLS_VERSION),setuptools-$(SETUPTOOLS_VERSION)))
+
+################################################################################
+# Install;
+################################################################################
+
+setuptools-install: timestamps/setuptools-install
+
+timestamps/setuptools-install:
+	@$(BASE)/work/bin/python -c 					\
+		"import sys, os; 					\
+		f = '../download/setuptools-$(SETUPTOOLS_VERSION).egg'; \
+		sys.path.insert(0, f);					\
+		from setuptools.command.easy_install import bootstrap;	\
+		sys.exit(bootstrap())"
+	touch timestamps/setuptools-install
+
+.PHONY: setuptools-install
+
+################################################################################
+# Clean;
+################################################################################
+
+clean:: setuptools-clean
+
+setuptools-clean:
+	-@rm -f timestamps/setuptools-*
+
+.PHONY: setuptools-clean
+

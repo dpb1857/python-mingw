@@ -1,0 +1,147 @@
+*** ./setupinfo.py.orig	Thu Jan 24 12:56:56 2008
+--- ./setupinfo.py	Sat Feb 16 15:42:53 2008
+***************
+*** 41,52 ****
+--- 41,62 ----
+          runtime_library_dirs = []
+      
+      result = []
++ 
++     # XXX dpb added
++     _extra_link_args = []
++     if OPTION_STATIC:
++         _extra_link_args += ["-static"]
++         _define_macros   += [("LIBXML_STATIC", None)]
++         # _library_dirs    += [""]
++ 
+      for module in modules:
+          result.append(
+              Extension(
+              module,
+              sources = ["src/lxml/" + module + source_extension],
+              extra_compile_args = ['-w'] + _cflags,
++             # XXX dpb added
++             extra_link_args = _extra_link_args,
+              define_macros = _define_macros,
+              include_dirs = _include_dirs,
+              library_dirs = _library_dirs,
+***************
+*** 63,94 ****
+  
+  def libraries():
+      if sys.platform in ('win32',):
+!         libs = ['libxslt', 'libexslt', 'libxml2', 'iconv']
+      else:
+          libs = ['xslt', 'exslt', 'xml2', 'z', 'm']
+!     if OPTION_STATIC:
+!         if sys.platform in ('win32',):
+!             libs = ['%s_a' % lib for lib in libs]
+      if sys.platform in ('win32',):
+!         libs.extend(['zlib', 'WS2_32'])
+      return libs
+  
+  def library_dirs(static_library_dirs):
+!     if OPTION_STATIC:
+          if not static_library_dirs:
+              static_library_dirs = env_var('LIBRARY')
+          assert static_library_dirs, "Static build not configured, see doc/build.txt"
+          return static_library_dirs
+      # filter them from xslt-config --libs
+      result = []
+      possible_library_dirs = flags('xslt-config --libs')
+      for possible_library_dir in possible_library_dirs:
+          if possible_library_dir.startswith('-L'):
+              result.append(possible_library_dir[2:])
+      return result
+  
+  def include_dirs(static_include_dirs):
+!     if OPTION_STATIC:
+          if not static_include_dirs:
+              static_include_dirs = env_var('INCLUDE')
+          assert static_include_dirs, "Static build not configured, see doc/build.txt"
+--- 73,121 ----
+  
+  def libraries():
+      if sys.platform in ('win32',):
+!         # XXX dpb - more unix-like for mingw;
+!         # libs = ['libxslt', 'libexslt', 'libxml2', 'iconv']
+!         libs = ['xslt', 'exslt', 'xml2', 'iconv', 'z']
+      else:
+          libs = ['xslt', 'exslt', 'xml2', 'z', 'm']
+!     # if OPTION_STATIC:
+!     #     if sys.platform in ('win32',):
+!     #         libs = ['%s.a' % lib for lib in libs]
+      if sys.platform in ('win32',):
+!         # XXX dpb - not zlib for mingw;
+!         # libs.extend(['zlib', 'WS2_32'])
+!         libs.extend(['WS2_32'])
+      return libs
+  
+  def library_dirs(static_library_dirs):
+!     # XXX dpb don't do this;
+!     # if OPTION_STATIC:
+!     if 0:
+          if not static_library_dirs:
+              static_library_dirs = env_var('LIBRARY')
+          assert static_library_dirs, "Static build not configured, see doc/build.txt"
+          return static_library_dirs
+      # filter them from xslt-config --libs
+      result = []
++ 
++     # Look for the python library;
++     if sys.platform in ('win32',):
++         possible_library_dirs = os.getenv('PYTHON_LDFLAGS', '')
++         for possible_library_dir in possible_library_dirs.split():
++             if possible_library_dir.startswith('-L'):
++                 result.append(possible_library_dir[2:])
++             
+      possible_library_dirs = flags('xslt-config --libs')
+      for possible_library_dir in possible_library_dirs:
+          if possible_library_dir.startswith('-L'):
+              result.append(possible_library_dir[2:])
++ 
+      return result
+  
+  def include_dirs(static_include_dirs):
+!     # XXX dpb don't do this;
+!     # if OPTION_STATIC:
+!     if 0:
+          if not static_include_dirs:
+              static_include_dirs = env_var('INCLUDE')
+          assert static_include_dirs, "Static build not configured, see doc/build.txt"
+***************
+*** 106,112 ****
+      if OPTION_DEBUG_GCC:
+          result.append('-g2')
+  
+!     if OPTION_STATIC:
+          if not static_cflags:
+              static_cflags = env_var('CFLAGS')
+          assert static_cflags, "Static build not configured, see doc/build.txt"
+--- 133,140 ----
+      if OPTION_DEBUG_GCC:
+          result.append('-g2')
+  
+!     # XXX dpb don't do this;
+!     if 0:
+          if not static_cflags:
+              static_cflags = env_var('CFLAGS')
+          assert static_cflags, "Static build not configured, see doc/build.txt"
+***************
+*** 136,142 ****
+          _, rf, ef = os.popen3(cmd)
+      else:
+          # Python 2.4+
+!         p = subprocess.Popen(cmd, shell=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+          rf, ef = p.stdout, p.stderr
+      errors = ef.read()
+--- 164,171 ----
+          _, rf, ef = os.popen3(cmd)
+      else:
+          # Python 2.4+
+!         # XXX dpb - specify shell on win32;
+!         p = subprocess.Popen("bash "+cmd, shell=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+          rf, ef = p.stdout, p.stderr
+      errors = ef.read()

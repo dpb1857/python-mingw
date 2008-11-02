@@ -1,0 +1,81 @@
+# -*- Makefile -*-
+
+# http://www.zlib.net/
+ZLIB_URL = http://www.zlib.net/zlib-$(ZLIB_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "zlib:\t\t$(ZLIB_VERSION)\t\tzlib support"
+
+
+zlib: zlib-download zlib-unpack zlib-configure zlib-build zlib-install
+
+.PHONY: zlib
+
+################################################################################
+# Setup: create targets for:
+#   zlib-download
+#   zlib-unpack
+#   zlib-do-unpack
+################################################################################
+
+zlib-UNPACK_HOOK = 1
+$(eval $(call setup,zlib,$(ZLIB_URL),$(ZLIB_VERSION),zlib-$(ZLIB_VERSION)))
+
+zlib-unpack-hook:
+	@echo "zlib unpack hook: Get rid of files that shouldn't be there"
+	(cd ../src/zlib && rm -f Makefile zconf.h)
+
+
+################################################################################
+# Configure;
+################################################################################
+
+zlib-configure:
+	@if [ ! -f ../src/zlib/Makefile ]; then \
+	    echo "configure zlib"; \
+	    set -x; \
+	    cd ../src/zlib && ./configure --prefix=$(BASE)/work; \
+	fi
+
+.PHONY: zlib-configure
+
+################################################################################
+# Create build targets:
+#   zlib-build
+#   zlib-do-build
+################################################################################
+
+$(eval $(call configure-build,zlib))
+
+
+################################################################################
+# Create install & clean targets:
+#   zlib-install
+#   zlib-do-install
+#   zlib-clean
+#   zlib-distclean
+################################################################################
+
+zlib-DISTCLEAN_HOOK = 1
+$(eval $(call configure-install-clean,zlib))
+
+zlib-distclean-hook:
+	@echo "zlib distclean hook: Get rid of files distclean missed"
+	-rm -f ../src/zlib/Makefile
+	-rm -f ../src/zlib/*.exe
+	-rm -f timestamps/zlib-*
+
+
+################################################################################
+# test;
+################################################################################
+
+test:: zlib-test
+
+zlib-test:
+	@ if [ -f ../src/zlib/Makefile ]; then	\
+	    echo "***** TESTING ZLIB *****"; 	\
+	    $(MAKE) -C ../src/zlib test;	\
+	fi
+
+.PHONY: zlib-test

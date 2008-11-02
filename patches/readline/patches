@@ -1,0 +1,74 @@
+*** ./readline.py.orig	Sat Dec  3 19:15:08 2005
+--- ./readline.py	Sat Sep 22 21:41:14 2007
+***************
+*** 1,3 ****
+--- 1,4 ----
++ # coding = iso-8859-1
+  """readline.py -- Readline Alternative for Windows
+  Copyright 2001, Chris Gonnerman and Alex Martelli
+  """
+***************
+*** 224,230 ****
+          elif c == '\x1b':
+              buf.s = ""
+  
+!         elif c == '\x04' or c == '\x1a':
+              buf.s = ""
+              break
+  
+--- 225,245 ----
+          elif c == '\x1b':
+              buf.s = ""
+  
+!         elif c == '\x04':       # ^D: del char, or exit if line is empty;
+!             if len(buf.s) == 0:
+!                 buf.s = ""
+!                 break
+!             else:
+!                 buf.s = buf.s[:buf.p] + buf.s[buf.p+1:]
+!                 buf.paint_tail()
+! 
+!         elif c == '\x0b':       # ^K: kill rest of line;
+!             if buf.s:
+!                 while len(buf.s[buf.p:]) > 0:
+!                     buf.s = buf.s[:buf.p] + buf.s[buf.p+1:]
+!                     buf.paint_tail()
+! 
+!         elif c == '\x1a':
+              buf.s = ""
+              break
+  
+***************
+*** 244,250 ****
+                  buf.s = buf.s[:buf.p] + buf.s[buf.p+1:]
+                  buf.paint_tail()
+  
+!         elif c == _kstable["Up"]:
+              if pos:
+                  pos = pos - 1
+                  buf.home_cursor()
+--- 259,265 ----
+                  buf.s = buf.s[:buf.p] + buf.s[buf.p+1:]
+                  buf.paint_tail()
+  
+!         elif c == _kstable["Up"] or c == '\x10': # ^P
+              if pos:
+                  pos = pos - 1
+                  buf.home_cursor()
+***************
+*** 258,264 ****
+                  buf.s = history[pos]
+                  buf.new_line()
+  
+!         elif c == _kstable["Down"]:
+              if pos < len(history):
+                  pos = pos + 1
+                  buf.home_cursor()
+--- 273,279 ----
+                  buf.s = history[pos]
+                  buf.new_line()
+  
+!         elif c == _kstable["Down"] or c == '\x0e':  # ^N
+              if pos < len(history):
+                  pos = pos + 1
+                  buf.home_cursor()

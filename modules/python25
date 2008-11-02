@@ -1,0 +1,230 @@
+# -*- Makefile -*- 
+
+# http://www.python.org/
+PYTHON25_URL = http://python.org/ftp/python/$(PYTHON25_VERSION)/Python-$(PYTHON25_VERSION).tar.bz2
+
+# Dev
+SVN_BASE = https://python-mingw.svn.sourceforge.net/svnroot/python-mingw
+
+PYTHON_MINGW_BRANCH = python/branches/2.5.1-mingw
+# PYTHON_MINGW_BRANCH = python/tags/mingw-2.5.1v1
+
+PYTHON_PREV_BRANCH  = python/tags/mingw-2.5.1v1
+
+
+EXTERNAL_LIBS = zlib bzip2 gdbm sqlite openssl
+
+ifeq "$(PLATFORM)" "WIN32"
+PY_HOST_EXPR = --host=i686-pc-mingw32
+# XXX change the way we do this; PYTHON25_MASTER_APPLY_PATCHES = python25-master-apply-patches
+endif
+
+####################################################################################################
+# We can directly control where the python sources are taken from by setting the environment
+# variable PYTHON25 to:
+#   "checkout" to do a svn checkout;
+#   "master"   to download python from python.org and apply the mingw patches;
+#
+# If the patches file exists for python25, we're working with a downloaded makefile 
+# package and we can simply apply the patches to the python.org sources.
+#
+# If the patches file does not exist, we should be working out of a checked-out 
+# makefile tree, in which case we will do a 'svn checkout' of the python sources.
+####################################################################################################
+
+ifeq "$(PYTHON25)" ""
+ifeq "$(wildcard patches/python25/patches)" ""
+PYTHON_SRC = python25-src-checkout
+else
+PYTHON_SRC = python25-src-master
+endif
+else
+PYTHON_SRC = python25-src-$(PYTHON25)
+endif
+
+help::
+	@echo
+	@echo "Type 'make python25-help' for more python25-targets."
+
+python25-help:
+	@echo "make python25"
+	@echo "        builds python2.5."
+	@echo "make python25-libs"
+	@echo "        build the libraries we need before building the python25 shared mods."
+	@echo "make python25-sharedmod"
+	@echo "        build python2.5 shared modules."
+	@echo "make python25-sharedmod-clean"
+	@echo "        removes shared modules from the src tree."
+	@echo "make python25-win32-release"
+	@echo "        creates a release layout close to matching the default win32 release."
+	@echo "make python25-mingw-base-changes"
+	@echo "        diffs from official python release to mingw branch."
+	@echo "make python25-mingw-branch-changes"
+	@echo "        diffs from previous tag to current mingw branch."
+	@echo "make python25-checkout"
+	@echo "        checkout the python25 mingw source tree."
+	@echo "        (or export PYTHON25=checkout)"
+
+
+modulelist::
+	@/bin/echo -e "python25:\t$(PYTHON25_VERSION)\t\tPython"
+
+python25: python25-src python25-configure python25-build python25-install
+
+.PHONY: python25
+
+################################################################################
+# Setup: create targets for:
+#   python25-download
+#   python25-unpack
+#   python25-do-unpack
+################################################################################
+
+$(eval $(call setup,python25,$(PYTHON25_URL),$(PYTHON25_VERSION),Python-$(PYTHON25_VERSION)))
+
+python25-src: $(PYTHON_SRC)
+python25-src-checkout: python25-checkout
+python25-src-master:   python25-download python25-unpack
+
+python25-checkout: | ../src
+	@if [ ! -d ../src/python25 ]; then \
+	    echo "checkout python25"; set -x;\
+	    svn checkout $(SVN_BASE)/$(PYTHON_MINGW_BRANCH) ../src/python25; \
+	fi
+
+.PHONY: python25-src python25-src-checkout python25-src-master
+
+################################################################################
+# Configure;
+################################################################################
+
+# Loose coupling between prerequisite libraries & python, in case their download or build fails;
+timestamps/python25-prereq:
+	@for lib in $(EXTERNAL_LIBS); do \
+	    echo "checking $$lib"; \
+	    $(MAKE) --no-print-directory "$$lib"; \
+	    if [ $$? -ne 0 ]; then \
+		echo "***** Cannot make library $$lib"; \
+	    fi \
+	done
+	touch timestamps/python25-prereq
+
+python25-configure: | timestamps timestamps/python25-prereq
+	@if [ ! -f ../src/python25/Makefile ]; then \
+	    echo "configure python25"; \
+	    set -x; \
+	    cd ../src/python25 && ./configure \
+		--prefix=$(BASE)/work 	\
+		$(PY_HOST_EXPR); \
+	fi
+
+.PHONY: python25-configure
+
+################################################################################
+# Create build targets:
+#   python25-build
+#   python25-do-build
+################################################################################
+
+python25-TEST_TARGET = python$(EXE)
+$(eval $(call configure-build,python25))
+
+python25-sharedmod:
+	$(MAKE) -C ../src/python25 sharedmods
+
+.PHONY: python25-sharedmod
+
+################################################################################
+# Create install & clean targets:
+#   python25-install
+#   python25-do-install
+#   python25-clean
+#   python25-distclean
+################################################################################
+
+python25-INSTALL_HOOK = 1
+python25-DISTCLEAN_HOOK = 1
+$(eval $(call configure-install-clean,python25))
+
+python25-install-hook:
+	$(BASE)/work/bin/python scripts/build-distutils-cfg.py
+
+python25-distclean-hook:
+	rm -f ../src/python25/Makefile.pre.in
+
+python25-sharedmod-clean:
+	-@cd ../src/python25 && rm -rf build
+	-@rm -f timestamps/python25-build
+	-@rm -f timestamps/python25-install
+
+.PHONY: python25-sharedmod-clean
+
+################################################################################
+# Generate diffs;
+################################################################################
+
+python25-mingw-base-changes:
+	svn diff --old=$(SVN_BASE)/python/tags/$(PYTHON_VERSION) --new=$(SVN_BASE)/$(PYTHON_MINGW_BRANCH)
+
+python25-mingw-branch-changes:
+	svn diff --old=$(SVN_BASE)/$(PYTHON_PREV_BRANCH) --new=$(SVN_BASE)/$(PYTHON_MINGW_BRANCH)
+
+test:: python25-test
+
+python25-test:
+	@if [ -f ../src/python25/Makefile ]; then 					\
+	    echo "***** TESTING PYTHON25 *****";					\
+	    cd ../work/bin && ./python -E -tt ../lib/python2.5/test/regrtest.py;	\
+	fi
+
+################################################################################
+# Create a win32-like release directory;
+################################################################################
+
+python25-win32-release:
+	(cd .. && rsync -av work/bin/python.exe work/bin/python25.dll Python25/)
+	(cd .. && rsync -av work/lib/python2.5/ Python25/Lib)
+	rm -f ../Python25/Lib/distutils/distutils.cfg
+	(cd .. && rsync -av work/include/python2.5/ Python25/include)
+	(cd .. && rsync -av src/python25/README src/python25/LICENSE src/python25/Misc/NEWS Python25/)
+	@# Install sqlite dll;
+	if [ -f ../work/bin/libsqlite3-0.dll ]; then \
+	    (cd .. && rsync -av work/bin/libsqlite3-0.dll Python25/); \
+	fi
+	@# Install the curl dlls;
+	if [ -f ../work/bin/libcares-1.dll ]; then \
+	    (cd .. && rsync -av work/bin/libcares-1.dll Python25/); \
+	fi
+	if [ -f ../work/bin/libcurl-4.dll ]; then \
+	    (cd .. && rsync -av work/bin/libcurl-4.dll Python25/); \
+	fi
+	@# Install the wx dll;
+	if [ -f ../work/bin/cygwxmsw28ud_gcc_custom-0.dll ]; then \
+	    (cd .. && rsync -av work/bin/cygwxmsw28ud_gcc_custom-0.dll Python25/); \
+	fi
+
+.PHONY: python25-win32-release
+
+################################################################################
+# Patches;
+#   python25-patches
+#   python25-patches-apply
+################################################################################
+
+PYTHON_MINGW_PATCH_TARGET = python/tags/mingw-2.5.1v2
+
+python25-patches-check-versions:
+	@echo "SVN_BASE                  is $(SVN_BASE)"
+	@echo "PYTHON25_VERSION          is $(PYTHON25_VERSION)"
+	@echo "PYTHON_MINGW_PATCH_TARGET is $(PYTHON_MINGW_PATCH_TARGET)"
+
+python25-patches:
+	svn diff --old=$(SVN_BASE)/python/tags/$(PYTHON25_VERSION) --new=$(SVN_BASE)/$(PYTHON_MINGW_PATCH_TARGET) > patches/python25/patches
+	echo "$(PYTHON25_VERSION) to $(PYTHON_MINGW_PATCH_TARGET)" > patches/python25/patch-version
+
+python25-patches-apply:
+	cp patches/python25/patches ../src/python25/patches
+	@echo "Applying patches: $(shell cat patches/python25/patch-version)"
+	-(cd ../src/python25 && patch -b -p0 < patches)
+
+.PHONY: python25-patches python25-patches-apply

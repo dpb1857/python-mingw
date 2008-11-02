@@ -1,0 +1,39 @@
+*** ./Makefile.in.orig	Thu Jun 28 05:46:18 2007
+--- ./Makefile.in	Sat Sep 22 22:49:06 2007
+***************
+*** 111,116 ****
+--- 111,119 ----
+  LTLINK = $(LIBTOOL) --mode=link $(TCC) @LDFLAGS@
+  LTINSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+  
++ # XXX dpb: do we need to set EXEINSTALL back to LTINSTALL when building shared?
++ EXEINSTALL = $(INSTALL)
++ 
+  # nawk compatible awk.
+  NAWK = @AWK@
+  
+***************
+*** 681,691 ****
+  	mkdir -p doc
+  	mv $(DOC) doc
+  
+! install:	sqlite3 libsqlite3.la sqlite3.h ${HAVE_TCL:1=tcl_install}
+  	$(INSTALL) -d $(DESTDIR)$(libdir)
+  	$(LTINSTALL) libsqlite3.la $(DESTDIR)$(libdir)
+  	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+! 	$(LTINSTALL) sqlite3 $(DESTDIR)$(exec_prefix)/bin
+  	$(INSTALL) -d $(DESTDIR)$(prefix)/include
+  	$(INSTALL) -m 0644 sqlite3.h $(DESTDIR)$(prefix)/include
+  	$(INSTALL) -m 0644 $(TOP)/src/sqlite3ext.h $(DESTDIR)$(prefix)/include
+--- 684,694 ----
+  	mkdir -p doc
+  	mv $(DOC) doc
+  
+! install:	sqlite3$(TEXE) libsqlite3.la sqlite3.h ${HAVE_TCL:1=tcl_install}
+  	$(INSTALL) -d $(DESTDIR)$(libdir)
+  	$(LTINSTALL) libsqlite3.la $(DESTDIR)$(libdir)
+  	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+! 	$(EXEINSTALL) sqlite3$(TEXE) $(DESTDIR)$(exec_prefix)/bin
+  	$(INSTALL) -d $(DESTDIR)$(prefix)/include
+  	$(INSTALL) -m 0644 sqlite3.h $(DESTDIR)$(prefix)/include
+  	$(INSTALL) -m 0644 $(TOP)/src/sqlite3ext.h $(DESTDIR)$(prefix)/include

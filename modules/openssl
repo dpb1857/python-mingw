@@ -1,0 +1,139 @@
+# -*- Makefile -*-
+
+# http://www.openssl.org/
+OPENSSL_URL = http://www.openssl.org/source/openssl-$(OPENSSL_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+OPENSSL_PLATFORM_EXPR = i686-whatever-mingw
+OPENSSL_CONFIGURE = ./Configure mingw
+else
+OPENSSL_CONFIGURE = ./config
+endif
+
+ifeq "$(CONFIG_OPENSSL_SHARED)" "yes"
+ifeq "$(PLATFORM)" "WIN32"
+OPENSSL_SHARED = 
+else
+OPENSSL_SHARED = shared
+endif
+else
+OPENSSL_SHARED = no-shared no-dso
+endif
+
+
+modulelist::
+	@/bin/echo -e "openssl:\t$(OPENSSL_VERSION)\t\tSSL Support"
+
+openssl: openssl-download openssl-unpack openssl-configure openssl-build openssl-install
+
+.PHONY: openssl
+
+################################################################################ 
+# Setup: create targets for:
+#   openssl-download
+#   openssl-unpack
+#   openssl-do-unpack
+################################################################################
+
+openssl-UNPACK_HOOK = 1
+$(eval $(call setup,openssl,$(OPENSSL_URL),$(OPENSSL_VERSION),openssl-$(OPENSSL_VERSION)))
+
+openssl-unpack-hook:
+	cd ../src/openssl && rm -f Makefile
+
+################################################################################
+# Configure;
+################################################################################
+
+openssl-configure:
+	@if [ ! -f ../src/openssl/Makefile ]; then \
+	    echo "configure openssl"; \
+	    set -x; \
+	    (cd ../src/openssl && 			\
+		$(OPENSSL_CONFIGURE) 			\
+			--prefix=$(BASE)/work 		\
+			$(OPENSSL_SHARED));		\
+	    $(MAKE) --no-print-directory openssl-breaklinks;\
+	fi
+
+openssl-breaklinks:
+	@true
+ifeq "$(PLATFORM)" "WIN32"
+	cd ../src/openssl && for file in `find . -type l -print`; do \
+	    cp $$file save; \
+	    rm $$file; \
+	    mv save $$file; \
+	done
+endif
+
+.PHONY: openssl-configure 
+
+################################################################################
+# Create build targets:
+#   openssl-build
+#   openssl-do-build
+################################################################################
+
+openssl-TEST_TARGET = $(BASE)/src/openssl/libssl.a
+openssl-BUILD_HOOK = 1
+$(eval $(call configure-build-filecheck,openssl))
+
+openssl-build-hook:
+	@true
+ifeq "$(CONFIG_OPENSSL_SHARED)" "yes"
+ifeq "$(PLATFORM)" "WIN32"
+	cd ../src/openssl; \
+	  mkdir win32; \
+	  perl util/mkdef.pl 32 libeay > win32/crypto.def;	\
+	  perl util/mkdef.pl 32 ssleay > win32/ssl.def;		\
+	  dllwrap --dllname win32/libcrypto.dll --output-lib win32/libcrypto.dll.a --def win32/crypto.def libcrypto.a -lwsock32 -lgdi32;	\
+	  dllwrap --dllname win32/libssl.dll --output-lib win32/libssl.dll.a --def win32/ssl.def libssl.a win32/libcrypto.dll.a;
+endif
+endif
+
+################################################################################
+# Create install & clean targets:
+#   openssl-install
+#   openssl-do-install
+#   openssl-clean
+#   openssl-distclean
+################################################################################
+
+openssl-INSTALL_HOOK = 1
+openssl-CLEAN_HOOK = 1
+openssl-DISTCLEAN_HOOK = 1
+$(eval $(call configure-install-clean,openssl))
+
+openssl-install-hook:
+	@true
+ifeq "$(CONFIG_OPENSSL_SHARED)" "yes"
+ifeq "$(PLATFORM)" "WIN32"
+	cd ../src/openssl/win32; \
+	    install libcrypto.dll $(BASE)/work/bin; \
+	    install libssl.dll $(BASE)/work/bin; \
+	    install libcrypto.dll.a $(BASE)/work/lib; \
+	    install libssl.dll.a $(BASE)/work/lib;
+	./scripts/build-la crypto 0 $(BASE) '-lwsock32 -lgdi32' > $(BASE)/work/lib/libcrypto.la
+	./scripts/build-la ssl 0 $(BASE) ' -L$(BASE)/work/lib $(BASE)/work/lib/libcrypto.la' > $(BASE)/work/lib/libssl.la
+endif
+endif
+
+openssl-clean-hook:
+	rm -rf ../src/openssl/win32
+
+openssl-distclean-hook:
+	rm -f ../src/openssl/Makefile
+
+################################################################################
+# Test;
+################################################################################
+
+test:: openssl-test
+
+openssl-test:
+	@if [ -f ../src/openssl/Makefile ]; then	\
+	    echo "***** TESTING OPENSSL *****";		\
+	    $(MAKE) -C ../src/openssl test;		\
+	fi
+
+.PHONY: openssl-test

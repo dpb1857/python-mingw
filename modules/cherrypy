@@ -1,0 +1,30 @@
+# -*- Makefile -*-
+
+# http://www.cherrypy.org/
+CHERRYPY_URL = http://download.cherrypy.org/cherrypy/$(CHERRYPY_VERSION)/CherryPy-$(CHERRYPY_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "cherrypy:\t$(CHERRYPY_VERSION)\t\tObject-oriented HTTP framework"
+
+cherrypy: python25 cherrypy-download cherrypy-unpack cherrypy-install
+
+.PHONY: cherrypy
+
+################################################################################
+# Setup: create targets for:
+#   cherrypy-download
+#   cherrypy-unpack
+#   cherrypy-do-unpack
+################################################################################
+
+$(eval $(call setup,cherrypy,$(CHERRYPY_URL),$(CHERRYPY_VERSION),CherryPy-$(CHERRYPY_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   cherrypy-install
+#   cherrypy-do-install
+#   cherrypy-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,cherrypy))
+

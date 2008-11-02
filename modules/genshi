@@ -1,0 +1,29 @@
+# -*- Makefile -*-
+
+# http://genshi.edgewall.org/
+GENSHI_URL = http://ftp.edgewall.com/pub/genshi/Genshi-$(GENSHI_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "genshi:\t\t$(GENSHI_VERSION)\t\tTemplating"
+
+genshi: python25 genshi-download genshi-unpack genshi-install
+
+.PHONY: genshi
+
+################################################################################
+# Setup: create targets for:
+#   genshi-download
+#   genshi-unpack
+#   genshi-do-unpack
+################################################################################
+
+$(eval $(call setup,genshi,$(GENSHI_URL),$(GENSHI_VERSION),Genshi-$(GENSHI_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   genshi-install
+#   genshi-do-install
+#   genshi-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,genshi))

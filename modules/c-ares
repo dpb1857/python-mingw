@@ -1,0 +1,75 @@
+# -*- Makefile -*-
+
+# http://daniel.haxx.se/projects/c-ares/
+C-ARES_URL = http://daniel.haxx.se/projects/c-ares/c-ares-$(C-ARES_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+C-ARES_HOST_EXPR = --host=i686-pc-mingw32
+endif
+
+ifeq "$(CONFIG_C-ARES_SHARED)" "yes"
+C-ARES_SHARED = --enable-shared=yes
+else
+C-ARES_SHARED = --enable-shared=no
+endif
+
+modulelist::
+	@/bin/echo -e "c-ares:\t\t$(C-ARES_VERSION)\t\tAsynchronous Resolver"
+
+
+c-ares: c-ares-download c-ares-unpack c-ares-configure c-ares-build c-ares-install
+
+.PHONY: c-ares
+
+################################################################################
+# Setup: create targets for:
+#   c-ares-download
+#   c-ares-unpack
+#   c-ares-do-unpack
+################################################################################
+
+$(eval $(call setup,c-ares,$(C-ARES_URL),$(C-ARES_VERSION),c-ares-$(C-ARES_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+c-ares-configure:
+	@if [ ! -f ../src/c-ares/Makefile ]; then \
+	    echo "configure c-ares"; \
+	    set -x; \
+	    cd ../src/c-ares && $(SETUP_C-ARES_PATH) 	\
+		./configure --prefix=$(BASE)/work 	\
+		$(C-ARES_SHARED)			\
+		--disable-dependency-tracking		\
+		$(C-ARES_HOST_EXPR);			\
+	fi
+
+.PHONY: c-ares-configure
+
+################################################################################
+# Create build targets:
+#   c-ares-build
+#   c-ares-do-build
+################################################################################
+
+$(eval $(call configure-build,c-ares))
+
+################################################################################
+# Create install & clean targets:
+#   c-ares-install
+#   c-ares-do-install
+#   c-ares-clean
+#   c-ares-distclean
+################################################################################
+
+$(eval $(call configure-install-clean,c-ares))
+
+################################################################################
+# Patches;
+#   c-ares-patches
+#   c-ares-patches-revert
+#   c-ares-patches-apply
+################################################################################
+
+$(eval $(call patches,c-ares,$(C-ARES_VERSION)))

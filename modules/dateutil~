@@ -1,0 +1,29 @@
+# -*- Makefile -*-
+
+# http://labix.org/python-dateutil
+DATEUTIL_URL = http://labix.org/dist/$(KID_VERSION)/kid-$(KID_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "kid:\t\t$(KID_VERSION)\t\tTemplating"
+
+kid: python25 kid-download kid-unpack kid-install
+
+.PHONY: kid
+
+################################################################################
+# Setup: create targets for:
+#   kid-download
+#   kid-unpack
+#   kid-do-unpack
+################################################################################
+
+$(eval $(call setup,kid,$(KID_URL),$(KID_VERSION),kid-$(KID_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   kid-install
+#   kid-do-install
+#   kid-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,kid))

@@ -1,0 +1,29 @@
+# -*- Makefile -*-
+
+# http://www.sqlalchemy.org/
+SQLALCHEMY_URL = http://prdownloads.sourceforge.net/sqlalchemy/SQLAlchemy-$(SQLALCHEMY_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "sqlalchemy:\t$(SQLALCHEMY_VERSION)\t\tSQL Toolkit & Object Relational Manager"
+
+sqlalchemy: python25 sqlalchemy-download sqlalchemy-unpack sqlalchemy-install
+
+.PHONY: sqlalchemy
+
+################################################################################
+# Setup: create targets for:
+#   sqlalchemy-download
+#   sqlalchemy-unpack
+#   sqlalchemy-do-unpack
+################################################################################
+
+$(eval $(call setup,sqlalchemy,$(SQLALCHEMY_URL),$(SQLALCHEMY_VERSION),SQLAlchemy-$(SQLALCHEMY_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   sqlalchemy-install
+#   sqlalchemy-do-install
+#   sqlalchemy-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,sqlalchemy))

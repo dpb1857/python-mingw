@@ -1,0 +1,43 @@
+# -*- Makefile -*-
+# http://www.mingw.org/
+
+
+MINGW_FILES =  \
+	gcc-core-3.4.5-20060117-1.tar.gz 	\
+	gcc-g++-3.4.5-20060117-1.tar.gz		\
+	gcc-java-3.4.5-20060117-1.tar.gz	\
+	binutils-2.17.50-20060824-1.tar.gz	\
+	w32api-3.10.tar.gz			\
+	mingw-runtime-3.13.tar.gz
+
+DL_FILES = $(foreach file,$(MINGW_FILES),../download/$(file))
+
+
+modulelist::
+	@/bin/echo -e "mingw:\t\tVARIOUS\t\tMingw Compiler Suite"
+
+ifeq "$(PLATFORM)" "WIN32"
+mingw: mingw-help
+
+mingw-help:
+	@echo "'make mingw-download' will download the MinGW compiler suite;"
+	@echo "'make mingw-unpack' will unpack the MinGW compilers in ../mingw."
+endif
+
+mingw-download: $(DL_FILES)
+
+$(DL_FILES): | ../download
+	cd ../download && wget http://prdownloads.sourceforge.net/mingw/$(notdir $@)
+
+
+../mingw:
+	mkdir ../mingw
+
+mingw-unpack: | ../mingw
+	for file in $(DL_FILES); do \
+	    echo $$file | fgrep -q '.tar.gz'; \
+	    if [ $$? -eq 0 ]; then \
+		(cd ../mingw && tar xzf $$file); \
+	    fi;	\
+	done
+	$(MAKE) configuration

@@ -1,0 +1,68 @@
+# -*- Makefile -*-
+
+# http://pylucene.osafoundation.org/
+PYL_URL = http://downloads.osafoundation.org/PyLucene/src/PyLucene-src-$(PYL_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "pylucene:\t$(PYL_VERSION)\t\tPython interface to Lucene search library"
+
+pylucene: python25 libiconv pylucene-download pylucene-unpack pylucene-configure pylucene-build pylucene-install
+
+.PHONY: pylucene
+
+################################################################################
+# Setup: create targets for:
+#   pylucene-download
+#   pylucene-unpack
+#   pylucene-do-unpack
+################################################################################
+
+$(eval $(call setup,pylucene,$(PYL_URL),$(PYL_VERSION),PyLucene-src-$(PYL_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+pylucene-configure: ;
+
+################################################################################
+# Create build targets:
+#   pylucene-build
+#   pylucene-do-build
+################################################################################
+
+$(eval $(call configure-build,pylucene))
+
+################################################################################
+# Create install & clean targets:
+#   pylucene-install
+#   pylucene-do-install
+#   pylucene-clean
+#   pylucene-distclean
+################################################################################
+
+pylucene-TEST_TARGET = libcheck
+$(eval $(call configure-install-clean,pylucene))
+
+################################################################################
+# Test;
+################################################################################
+
+test:: pylucene-test
+
+pylucene-test:
+	@if [ -d ../src/pylucene ]; then		\
+	    echo "***** TESTING PYLUCENE *****";	\
+	    $(MAKE) -C ../src/pylucene test;		\
+	fi
+
+.PHONY: pylucene-test
+
+################################################################################
+# Patches;
+#   pylucene-patches
+#   pylucene-patches-revert
+#   pylucene-patches-apply
+################################################################################
+
+$(eval $(call patches,pylucene))

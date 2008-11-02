@@ -1,0 +1,79 @@
+# -*- Makefile -*-
+
+# http://xmlsoft.org/XSLT/
+LIBXSLT_URL = ftp://xmlsoft.org/libxslt/libxslt-$(LIBXSLT_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+LIBXSLT_HOST_EXPR = --host=i686-pc-mingw32
+endif
+
+ifeq "$(CONFIG_LIBXSLT_SHARED)" "yes"
+LIBXSLT_SHARED = --enable-shared=yes
+else
+LIBXSLT_SHARED = --enable-shared=no
+endif
+
+modulelist::
+	@/bin/echo -e "libxslt:e\t$(LIBXSLT_VERSION)\t\tlibxslt XML library"
+
+libxslt: libiconv libxslt-download libxslt-unpack libxslt-configure libxslt-build libxslt-install
+
+
+.PHONY: libxslt
+
+################################################################################
+# Setup: create targets for:
+#   libxslt-download
+#   libxslt-unpack
+#   libxslt-do-unpack
+################################################################################
+
+$(eval $(call setup,libxslt,$(LIBXSLT_URL),$(LIBXSLT_VERSION),libxslt-$(LIBXSLT_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+libxslt-configure:
+	@if [ ! -f ../src/libxslt/Makefile ]; then \
+	    echo "configure libxslt"; \
+	    set -x; \
+	    cd ../src/libxslt && \
+		./configure --prefix=$(BASE)/work 	\
+			--disable-dependency-tracking	\
+			$(LIBXSLT_HOST_EXPR); 		\
+	fi
+
+.PHONY: libxslt-configure
+
+################################################################################
+# Create build targets:
+#   libxslt-build
+#   libxslt-do-build
+################################################################################
+
+openssl-TEST_TARGET = $(BASE)/src/libxslt/libxslt/.libs/libxslt.a
+$(eval $(call configure-build-filecheck,libxslt))
+
+################################################################################
+# Create install & clean targets:
+#   libxslt-install
+#   libxslt-do-install
+#   libxslt-clean
+#   libxslt-distclean
+################################################################################
+
+$(eval $(call configure-install-clean,libxslt))
+
+################################################################################
+# XXX - libxslt test requires TCL;
+################################################################################
+
+################################################################################
+# Patches;
+#   libxslt-patches
+#   libxslt-patches-revert
+#   libxslt-patches-apply
+################################################################################
+
+$(eval $(call patches,libxslt))

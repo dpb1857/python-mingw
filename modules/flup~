@@ -1,0 +1,29 @@
+# -*- Makefile -*-
+
+# http://genshi.edgewall.org/
+FLUP_URL = http://www.saddi.com/software/flup/dist/flup-$(FLUP_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "flup:\t\t$(FLUP_VERSION)\t\tWSGI interfaces"
+
+flup: python25 flup-download flup-unpack flup-install
+
+.PHONY: flup
+
+################################################################################
+# Setup: create targets for:
+#   flup-download
+#   flup-unpack
+#   flup-do-unpack
+################################################################################
+
+$(eval $(call setup,flup,$(FLUP_URL),$(FLUP_VERSION),flup-$(FLUP_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   flup-install
+#   flup-do-install
+#   flup-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,flup))

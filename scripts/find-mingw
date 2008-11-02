@@ -1,0 +1,52 @@
+#!/bin/sh
+
+drives="c d e f g"
+
+paths="../mingw"
+for drive in $drives; do
+    paths="$paths /cygdrive/$drive/mingw"
+done
+
+for path in $paths; do
+    if [ -d $path/bin ]; then
+	base=`cygpath -m $path`
+	base=`cygpath -u $base`
+
+	# Create a line that looks like:
+	echo "MINGW_BASE = $base" >> .configuration
+	exit 0
+    fi
+done
+
+echo ""  >> .configuration
+echo "#" >> .configuration
+echo "# MINGW_BASE is a unix-style name of a mingw directory" >> .configuration
+echo "# that has bin, include, etc. as subdirectories;" >> .configuration
+echo "#" >> .configuration
+echo ""  >> .configuration
+echo "MINGW_BASE = <INSERT_MINGW_TOP_LEVEL>" >> .configuration
+echo "export CC = /bin/false" >> .configuration
+echo >> .configuration
+echo "###############################################################################" >> .configuration
+echo "# ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR " >> .configuration
+echo "#" >> .configuration
+echo "#  Could not find mingw directory; To fix, do:" >> .configuration
+echo "#    make mingw-download" >> .configuration
+echo "#    make mingw-unpack" >> .configuration
+echo "#  or:" >> .configuration
+echo "#    install the mingw compilers somewhere;" >> .configuration
+echo "#    edit MINGW_BASE to be the top-level mingw directory;" >> .configuration
+echo "#    Remove the line that sets CC to be /bin/false;" >> .configuration
+echo "#" >> .configuration
+echo "# ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR " >> .configuration
+echo "###############################################################################" >> .configuration
+
+echo "********************************************" 1>&2
+echo "ERROR: Could not locate mingw bin directory." 1>&2
+echo "You can download and install the MinGW      " 1>&2
+echo "compilers with the commands:                " 1>&2
+echo "    make mingw-download                     " 1>&2
+echo "    make mingw-unpack                       " 1>&2
+echo "********************************************" 1>&2
+
+exit 1

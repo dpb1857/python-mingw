@@ -1,0 +1,84 @@
+# -*- Makefile -*-
+
+# http://www.wxpython.org/
+WX_URL = http://prdownloads.sourceforge.net/wxpython/wxPython-src-$(WX_VERSION).tar.bz2
+
+modulelist::
+	@/bin/echo -e "wxpython:\t$(WX_VERSION)\t\tPython interface to wxWidgets"
+
+wxpython: python25 wxpython-download wxpython-unpack wxpython-configure wxpython-build wxpython-install
+
+.PHONY: wxpython
+
+################################################################################
+# Setup: create targets for:
+#   wxpython-download
+#   wxpython-unpack
+#   wxpython-do-unpack
+################################################################################
+
+$(eval $(call setup,wxpython,$(WX_URL),$(WX_VERSION),wxPython-src-$(WX_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+wxpython-configure:
+	@if [ ! -f ../src/wxpython/Makefile ]; then 	\
+	    echo "configure wxPython"; 			\
+	    cd ../src/wxpython &&			\
+		./configure	--prefix=$(BASE)/work	\
+				--without-opengl	\
+			      	--enable-unicode	\
+				--enable-debug_flag	\
+				--enable-monolithic	\
+				--disable-dependency-tracking;	\
+	fi
+
+.PHONY: wxpython-configure
+
+################################################################################
+# Create build targets:
+#   wxpython-build
+#   wxpython-do-build
+################################################################################
+
+$(eval $(call configure-build,wxpython))
+
+################################################################################
+# Create install & clean targets:
+#   wxpython-install
+#   wxpython-do-install
+#   wxpython-clean
+#   wxpython-distclean
+################################################################################
+
+ifeq "$(PLATFORM)" "WIN32"
+WX_SETUP_OS_FLAGS = COMPILER=mingw32 WX_CONFIG='bash wx-config'
+endif
+WX_SETUP_FLAGS = BUILD_GLCANVAS=0 BUILD_STC=0 BUILD_GIZMOS=0 BUILD_ACTIVEX=0 $(WX_SETUP_OS_FLAGS)
+
+
+wxpython-INSTALL_HOOK = 1
+wxpython-CLEAN_HOOK = 1
+$(eval $(call configure-install-clean,wxpython))
+
+wxpython-install-hook:
+	if [ -f ../work/lib/cygwxmsw28ud_gcc_custom-0.dll ]; then	\
+	    mv ../work/lib/cygwxmsw28ud_gcc_custom-0.dll ../work/bin;	\
+	fi
+	cd ../src/wxpython/wxPython && \
+	    python setup.py $(WX_SETUP_FLAGS) install
+
+wxpython-clean-hook:
+	rm -rf ../src/wxpython/wxPython/build
+	rm -rf ../src/wxpython/wxPython/build.unicode
+
+################################################################################
+# Patches;
+#   wxpython-patches
+#   wxpython-patches-revert
+#   wxpython-patches-apply
+################################################################################
+
+$(eval $(call patches,wxpython,$(WX_VERSION)))

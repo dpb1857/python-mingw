@@ -1,0 +1,27 @@
+*** ./ares.h.orig	Mon Jun  4 00:36:31 2007
+--- ./ares.h	Tue Oct  2 16:02:26 2007
+***************
+*** 33,38 ****
+--- 33,39 ----
+    #include <tcp.h>
+  #elif defined(WIN32)
+    #include <winsock2.h>
++   #include <ws2tcpip.h>
+    #include <windows.h>
+  #else
+    #include <netinet/in.h>
+*** ./nameser.h.orig	Wed Mar 14 16:22:28 2007
+--- ./nameser.h	Tue Oct  2 15:22:09 2007
+***************
+*** 32,38 ****
+--- 32,41 ----
+  int ares_writev (SOCKET s, const struct iovec *vector, size_t count);
+  #define writev(s,vect,count)  ares_writev(s,vect,count)
+  
++ /* dpb: newer versions of mingw have this defined in sys/time.h */
++ #ifndef _SYS_TIME_H_
+  struct timezone { int dummy; };
++ #endif
+  
+  int ares_gettimeofday(struct timeval *tv, struct timezone *tz);
+  #define gettimeofday(tv,tz) ares_gettimeofday(tv,tz)

@@ -1,0 +1,98 @@
+# -*- Makefile -*-
+
+# http://www.gnu.org/software/gdbm/
+
+# From FSF;
+# GDBM_URL = http://mirrors.kernel.org/gnu/gdbm/gdbm-1.8.3.tar.gz
+# This includes patches to support win32;
+GDBM_URL = http://www.xmailserver.org/gdbm-win32-1.8.3-0.2.zip
+
+ifeq "$(PLATFORM)" "WIN32"
+GDBM_HOST_EXPR = --host=i686-pc-mingw32
+# When configured shared, it currently doesn't build using mingw...
+GDBM_SHARED_EXPR = --enable-shared=no
+endif
+
+modulelist::
+	@/bin/echo -e "gdbm:\t\t$(GDBM_VERSION)\t\tgdbm library"
+
+gdbm: gdbm-download gdbm-unpack gdbm-configure gdbm-build gdbm-install
+
+.PHONY: gdbm
+
+################################################################################
+# Setup: create targets for:
+#   gdbm-download
+#   gdbm-unpack
+#   gdbm-do-unpack
+################################################################################
+
+gdbm-UNPACK_HOOK = 1
+$(eval $(call setup,gdbm,$(GDBM_URL),$(GDBM_VERSION),gdbm-$(GDBM_VERSION).mod))
+
+gdbm-unpack-hook:
+	@echo "Remove some extra cruft left behind by the gdbm unpack"
+	rm -f ../src/gdbm-$(GDBM_VERSION)-*.diff
+	cd ../src && rm -rf lib
+
+.PHONY: gdbm-unpack-hook
+
+################################################################################
+# Configure;
+################################################################################
+
+gdbm-configure:
+	@if [ ! -f ../src/gdbm/Makefile ]; then \
+	    echo "configure gdbm"; \
+	    set -x; \
+	    cd ../src/gdbm && \
+		LDFLAGS=-no-undefined ./configure --prefix=$(BASE)/work \
+		$(GDBM_SHARED_EXPR) \
+		$(GDBM_HOST_EXPR); \
+	fi
+
+.PHONY: gdbm-configure
+
+################################################################################
+# Create build targets:
+#   gdbm-build
+#   gdbm-do-build
+################################################################################
+
+$(eval $(call configure-build,gdbm))
+
+################################################################################
+# Create install & clean targets:
+#   gdbm-install
+#   gdbm-do-install
+#   gdbm-clean
+#   gdbm-distclean
+################################################################################
+
+gdbm-MAKE_INSTALL_PARAM = PREFIX=$(BASE)/work
+$(eval $(call configure-install-clean,gdbm))
+
+################################################################################
+# Test;
+################################################################################
+
+test:: gdbm-test
+
+gdbm-test:
+	@if [ -f ../src/gdbm/Makefile ]; then	\
+	    echo "***** TESTING GDBM *****";	\
+	    $(MAKE) -C ../src/gdbm test; 	\
+	fi
+
+.PHONY: gdbm-test
+
+################################################################################
+# Patches;
+#   gdbm-patches
+#   gdbm-patches-revert
+#   gdbm-patches-apply
+################################################################################
+
+$(eval $(call patches,gdbm))
+
+

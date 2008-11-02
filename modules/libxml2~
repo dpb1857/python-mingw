@@ -1,0 +1,83 @@
+# -*- Makefile -*-
+
+# http://xmlsoft.org/
+LIBXML2_URL = ftp://xmlsoft.org/libxml2/libxml2-$(LIBXML2_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+LIBXML2_HOST_EXPR = --host=i686-pc-mingw32
+# Don't be fooled if the cygwin readline headers are installed!
+LIBXML2_DISABLE_READLINE = --without-readline
+endif
+
+ifeq "$(CONFIG_LIBXML2_SHARED)" "yes"
+LIBXML2_SHARED = --enable-shared=yes
+else
+LIBXML2_SHARED = --enable-shared=no
+endif
+
+modulelist::
+	@/bin/echo -e "libxml2:\t\t$(LIBXML2_VERSION)\t\tlibxml2 XML library"
+
+libxml2: libxml2-download libxml2-unpack libxml2-configure libxml2-build libxml2-install
+
+
+.PHONY: libxml2
+
+################################################################################
+# Setup: create targets for:
+#   libxml2-download
+#   libxml2-unpack
+#   libxml2-do-unpack
+################################################################################
+
+$(eval $(call setup,libxml2,$(LIBXML2_URL),$(LIBXML2_VERSION),libxml2-$(LIBXML2_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+libxml2-configure:
+	@if [ ! -f ../src/libxml2/Makefile ]; then \
+	    echo "configure libxml2"; \
+	    set -x; \
+	    cd ../src/libxml2 && \
+		./configure --prefix=$(BASE)/work 	\
+			--without-python		\
+			--disable-dependency-tracking	\
+			--with-iconv=$(BASE)/work	\
+			$(LIBXML2_HOST_EXPR); 		\
+	fi
+
+.PHONY: libxml2-configure
+
+################################################################################
+# Create build targets:
+#   libxml2-build
+#   libxml2-do-build
+################################################################################
+
+libxml2-TEST_TARGET = $(BASE)/src/libxml2/.libs/libxml2.a
+$(eval $(call configure-build-filecheck,libxml2))
+
+################################################################################
+# Create install & clean targets:
+#   libxml2-install
+#   libxml2-do-install
+#   libxml2-clean
+#   libxml2-distclean
+################################################################################
+
+$(eval $(call configure-install-clean,libxml2))
+
+################################################################################
+# XXX - libxml2 test requires TCL;
+################################################################################
+
+################################################################################
+# Patches;
+#   libxml2-patches
+#   libxml2-patches-revert
+#   libxml2-patches-apply
+################################################################################
+
+$(eval $(call patches,libxml2))

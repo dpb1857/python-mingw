@@ -1,0 +1,32 @@
+# -*- Makefile -*-
+
+# http://www.pythonware.com/products/pil/
+PIL_URL = http://effbot.org/downloads/Imaging-$(PIL_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "pil:\t\t$(PIL_VERSION)\t\tPython Imaging Library"
+
+# XXX more prereqs for pil;
+pil: python25 pil-download pil-unpack pil-install
+
+.PHONY: pil
+
+################################################################################
+# Setup: create targets for:
+#   pil-download
+#   pil-unpack
+#   pil-do-unpack
+################################################################################
+
+$(eval $(call setup,pil,$(PIL_URL),$(PIL_VERSION),Imaging-$(PIL_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   pil-install
+#   pil-do-install
+#   pil-clean
+################################################################################
+
+pil-PREREQ = jpeg freetype
+$(eval $(call pymodule-install-clean,pil))
+

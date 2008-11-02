@@ -1,0 +1,39 @@
+# -*- Makefile -*-
+
+# http://newcenturycomputers.net/projects/readline.html
+READLINE_URL = http://newcenturycomputers.net/projects/download.cgi/Readline-$(READLINE_VERSION).zip
+
+modulelist::
+	@/bin/echo -e "readline:\t$(READLINE_VERSION)\t\tReadline for Windows"
+
+readline: python25 readline-download readline-unpack readline-install
+
+.PHONY: readline
+
+################################################################################
+# Setup: create targets for:
+#   readline-download
+#   readline-unpack
+#   readline-do-unpack
+################################################################################
+
+$(eval $(call setup,readline,$(READLINE_URL),$(READLINE_VERSION),Readline-$(READLINE_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   readline-install
+#   readline-do-install
+#   readline-clean
+################################################################################
+
+readline-PREREQ = setuptools
+$(eval $(call pymodule-install-clean,readline))
+
+################################################################################
+# Patches;
+#   readline-patches
+#   readline-patches-revert
+#   readline-patches-apply
+################################################################################
+
+$(eval $(call patches,readline))

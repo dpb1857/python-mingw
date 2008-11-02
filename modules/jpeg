@@ -1,0 +1,50 @@
+# -*- Makefile -*-
+
+# http://www.ijg.org/
+JPEG_URL = http://www.ijg.org/files/jpegsrc.v$(JPEG_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "jpeg:\t\t$(JPEG_VERSION)\t\tJPEG library"
+
+jpeg: jpeg-download jpeg-unpack jpeg-configure jpeg-build jpeg-install
+
+.PHONY: jpeg
+
+################################################################################
+# Setup: create targets for:
+#   jpeg-download
+#   jpeg-unpack
+#   jpeg-do-unpack
+################################################################################
+
+$(eval $(call setup,jpeg,$(JPEG_URL),$(JPEG_VERSION),jpeg-$(JPEG_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+jpeg-configure:
+	@if [ ! -f ../src/jpeg/Makefile ]; then \
+	    echo "configure jpeg"; \
+	    cd ../src/jpeg && ./configure --prefix=$(BASE)/work; \
+	fi
+
+################################################################################
+# Create build targets:
+#   jpeg-build
+#   jpeg-do-build
+################################################################################
+
+$(eval $(call configure-build,jpeg))
+
+################################################################################
+# Create install & clean targets:
+#   jpeg-install
+#   jpeg-do-install
+#   jpeg-clean
+#   jpeg-distclean
+################################################################################
+
+jpeg-ADDL_INSTALL_TARGETS = install-lib install-headers
+$(eval $(call configure-install-clean,jpeg))
+

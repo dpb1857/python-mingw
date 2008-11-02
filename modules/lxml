@@ -1,0 +1,48 @@
+# -*- Makefile -*-
+
+# http://codespeak.net/lxml/
+LXML_URL = http://pypi.python.org/packages/source/l/lxml/lxml-$(LXML_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "lxml:\t\t$(LXML_VERSION)\t\tlibxml2/libxslt wrapper"
+
+
+lxml: python25 libxml2 libxslt lxml-download lxml-unpack lxml-install
+
+.PHONY: lxml
+
+################################################################################
+# Setup: create targets for:
+#   lxml-download
+#   lxml-unpack
+#   lxml-do-unpack
+################################################################################
+
+$(eval $(call setup,lxml,$(LXML_URL),$(LXML_VERSION),lxml-$(LXML_VERSION)))
+
+
+################################################################################
+# Create install & clean targets:
+#   lxml-install
+#   lxml-do-install
+#   lxml-clean
+################################################################################
+
+ifeq "$(PLATFORM)" "WIN32"
+# Static win32 builds, otherwise we can't find the module entry point; sigh.
+# Some sort of issue with loading dependent dlls?
+lxml-INSTALL_ARGS = --static
+lxml-SETUP_ENVIRON = 'PYTHON_LDFLAGS=$(shell $(BASE)/work/bin/python-config --ldflags)'
+endif
+lxml-PREREQ = libxml2 libxslt
+$(eval $(call pymodule-install-clean,lxml))
+
+
+################################################################################
+# Patches;
+#   lxml-patches
+#   lxml-patches-revert
+#   lxml-patches-apply
+################################################################################
+
+$(eval $(call patches,lxml))

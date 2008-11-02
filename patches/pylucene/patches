@@ -1,0 +1,79 @@
+*** ./GNUmakefile.orig	Thu Feb 14 09:55:38 2008
+--- ./GNUmakefile	Thu Feb 14 09:55:38 2008
+***************
+*** 0 ****
+--- 1,36 ----
++ # -*- Makefile -*-
++ 
++ include ../../.configuration
++ 
++ PREFIX = $(BASE)/work
++ PREFIX_PYTHON = $(PREFIX)
++ 
++ JCCH = gcjh
++ JCC  = gcj
++ LIBDIR_NAME = lib
++ 
++ ifeq "$(PLATFORM)" "LINUX"
++ GCJ_LIBDIR = /usr/lib
++ endif
++ 
++ ifeq "$(PLATFORM)" "WIN32"
++ GCJ_HOME   = $(MINGW_BASE)
++ GCJ_LIBDIR = $(MINGW_BASE)/lib
++ 
++ # Set shell, otherwise defaults to /bin/sh.exe, and install command fails mysteriously;
++ SHELL = /bin/sh
++ endif
++ 
++ # Define PYTHON so tests will run;
++ PYTHON = $(BASE)/work/bin/python
++ 
++ include Makefile
++ 
++ # Override variables set in the PyLucene Makefile;
++ PYTHON_VER = 2.5
++ 
++ ifeq "$(PLATFORM)" "WIN32"
++ PYTHON_INC  = $(PREFIX_PYTHON)/include/python$(PYTHON_VER)
++ SITE_SCRIPT = $(shell cygpath -m "$(BASE)/$(MAKEFILES)/scripts/site-packages")
++ PYTHON_SITE = $(shell cygpath -u `$(BASE)/work/bin/python "$(SITE_SCRIPT)"`)
++ endif
+*** ./Makefile.orig	Mon Jun 25 03:13:15 2007
+--- ./Makefile	Thu Feb 14 09:57:46 2008
+***************
+*** 806,815 ****
+  else
+  
+  ifeq ($(OS),Cygwin)
+  $(PYLUCENE_LIB): $(JAVA_OBJS) $(CPP_OBJS)
+! 	$(CXX) -shared -o $@ $(LDFLAGS) $(JAVA_OBJS) $(CPP_OBJS) `cygpath -aw $(PREFIX_PYTHON)/python$(subst .,,$(PYTHON_VER))$(_SUFFIX).dll` -L`cygpath -aw $(GCJ_LIBDIR)` -lgcj -liconv -lwin32k -lws2_32
+  ifneq ($(DEBUG),1)
+! 	$(dir $(CXX))$(STRIP) $@
+  endif
+  endif
+  endif
+--- 806,817 ----
+  else
+  
+  ifeq ($(OS),Cygwin)
++ PYTHON_DLL = python$(subst .,,$(PYTHON_VER))$(_SUFFIX).dll
++ PYTHON_LIB = $(wildcard $(PREFIX_PYTHON)/$(PYTHON_DLL) $(PREFIX_PYTHON)/bin/$(PYTHON_DLL))
+  $(PYLUCENE_LIB): $(JAVA_OBJS) $(CPP_OBJS)
+! 	$(CXX) -shared -o $@ $(LDFLAGS) $(JAVA_OBJS) $(CPP_OBJS) `cygpath -aw $(PYTHON_LIB)` -L$(BASE)/work/lib -lgcj -liconv -lwin32k -lws2_32
+  ifneq ($(DEBUG),1)
+! 	$(STRIP) $@
+  endif
+  endif
+  endif
+***************
+*** 820,825 ****
+--- 822,829 ----
+  all: env sources $(BINDIR) $(LIBS)
+  	@echo build of $(PYLUCENE_LIB) complete
+  
++ libcheck: $(PYLUCENE_LIB)
++ 
+  install:: all
+  	mkdir -p $(PYTHON_SITE)
+  	install -m 644 PyLucene.py $(PYTHON_SITE)

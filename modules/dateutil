@@ -1,0 +1,30 @@
+# -*- Makefile -*-
+
+# http://labix.org/python-dateutil
+DATEUTIL_URL = http://labix.org/download/python-dateutil/python-dateutil-$(DATEUTIL_VERSION).tar.bz2
+
+
+modulelist::
+	@/bin/echo -e "dateutil:\t$(DATEUTIL_VERSION)\t\tDate Utilities"
+
+dateutil: python25 setuptools dateutil-download dateutil-unpack dateutil-install
+
+.PHONY: dateutil
+
+################################################################################
+# Setup: create targets for:
+#   dateutil-download
+#   dateutil-unpack
+#   dateutil-do-unpack
+################################################################################
+
+$(eval $(call setup,dateutil,$(DATEUTIL_URL),$(DATEUTIL_VERSION),python-dateutil-$(DATEUTIL_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   dateutil-install
+#   dateutil-do-install
+#   dateutil-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,dateutil))

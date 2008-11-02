@@ -1,0 +1,84 @@
+# -*- Makefile -*-
+
+# http://www.sqlite.org/
+SQLITE_URL = http://www.sqlite.org/sqlite-$(SQLITE_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+SQLITE_HOST_EXPR = --host=i686-pc-mingw32
+# Don't be fooled if the cygwin readline headers are installed!
+SQLITE_DISABLE_READLINE = --disable-readline
+endif
+
+ifeq "$(CONFIG_SQLITE_SHARED)" "yes"
+SQLITE_SHARED = --enable-shared=yes
+else
+SQLITE_SHARED = --enable-shared=no
+endif
+
+modulelist::
+	@/bin/echo -e "sqlite:\t\t$(SQLITE_VERSION)\t\tSqlite database"
+
+sqlite: sqlite-download sqlite-unpack sqlite-configure sqlite-build sqlite-install
+
+
+.PHONY: sqlite
+
+################################################################################
+# Setup: create targets for:
+#   sqlite-download
+#   sqlite-unpack
+#   sqlite-do-unpack
+################################################################################
+
+$(eval $(call setup,sqlite,$(SQLITE_URL),$(SQLITE_VERSION),sqlite-$(SQLITE_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+sqlite-configure:
+	@if [ ! -f ../src/sqlite/Makefile ]; then \
+	    echo "configure sqlite"; \
+	    set -x; \
+	    cd ../src/sqlite && \
+		LDFLAGS=-no-undefined ./configure --prefix=$(BASE)/work \
+			--enable-threadsafe \
+			--enable-cross-thread-connections \
+			$(SQLITE_SHARED) \
+			--disable-tcl \
+			$(SQLITE_DISABLE_READLINE) \
+			$(SQLITE_HOST_EXPR); \
+	fi
+
+.PHONY: sqlite-configure
+
+################################################################################
+# Create build targets:
+#   sqlite-build
+#   sqlite-do-build
+################################################################################
+
+$(eval $(call configure-build,sqlite))
+
+################################################################################
+# Create install & clean targets:
+#   sqlite-install
+#   sqlite-do-install
+#   sqlite-clean
+#   sqlite-distclean
+################################################################################
+
+$(eval $(call configure-install-clean,sqlite))
+
+################################################################################
+# XXX - sqlite test requires TCL;
+################################################################################
+
+################################################################################
+# Patches;
+#   sqlite-patches
+#   sqlite-patches-revert
+#   sqlite-patches-apply
+################################################################################
+
+$(eval $(call patches,sqlite))

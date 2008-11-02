@@ -1,0 +1,12 @@
+
+makefiles-2.5.1v2
+-----------------
+  * Moved module version numbers into a separate file, config/VersionList;
+  * Rules for common operations are now based on templates in make/templates;
+  * The top-level GNUmakefile now sets the path to include the work/bin directory and the mingw/bin directory;
+  * add targets, mingw-download and mingw-unpack, to download and unpack the mingw compilers;
+  * add path constraints so cygwin and dos pathnames will more closely match; if there is a problem, you'll
+    get a message the first time you run make and it tries to generate your .configuration file;
+  * As of wxPython 2.8.6.1, no patches are needed!
+  * improved informational targets; type 'make' for help.
+

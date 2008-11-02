@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# NOTE: at the moment, the only component I know of that doesn't work
+# without this restriction is the "curl" python module.
+
+BASE=`cd .. && /bin/pwd`
+d_path=`cygpath -m $BASE`
+d_path_nodrive=`echo $d_path | cut -f2 -d:`
+
+if [ "$d_path_nodrive" != "$BASE" ]; then
+
+    # Catch the case where an appropriately mounted cygwin directory already exists;
+    if [ -d "$d_path_nodrive" ]; then
+	cwd=`/bin/pwd`
+	make_dir=`basename $cwd`
+	echo "You must do your build from the directory $d_path_nodrive/$make_dir."
+	exit 1
+    fi
+
+    d_top=`cygpath -m $BASE | cut -f1,2 -d/`
+    mountpoint=`echo $d_top | cut -f2 -d:`
+
+    echo "d_top: $d_top"
+
+    echo ""
+    echo "ERROR: You cannot build mingw in this directory."
+    echo ""
+    echo "The top-level directory must be mounted in cygwin so that the"
+    echo "cygwin pathname (currently $BASE) is the same as the"
+    echo "DOS path name with the drive letter removed (currently $d_path_nodrive)." 
+    echo ""
+    echo "You can fix this by running the cygwin mount command:"
+    echo "    mount $d_top $mountpoint"
+
+    if [ $d_top != $d_path ]; then
+	echo "or, if you want to be more specific:"
+	echo "    mkdir -p $d_path_nodrive"
+	echo "    mount $d_path $d_path_nodrive"
+	echo "if that will not obscure any files you need access to."
+    fi
+    echo ""
+    echo "More examples -"
+    echo ""
+    echo "If you want to do your build in the directory x:\python-mingw,"
+    echo "you should do the following mount command:"
+    echo "    mount x:/python-mingw /python-mingw"
+    exit 1
+fi

@@ -1,0 +1,57 @@
+#!/bin/sh
+
+OK=1
+
+# Are we using GNU Makefile?
+
+make -v | sed -n 1p | grep 'GNU Make' > /dev/null
+if [ $? -ne 0 ]; then
+    echo "You are not running GNU make; GNU make is required." 1>&2
+    OK=0
+    if [ "$PLATFORM" = "NT" ]; then
+	echo "You should update your cygwin Make package." 1>&2
+    fi
+fi
+
+PERL=`which perl 2>/dev/null`
+if [ -z "$PERL" ]; then
+    echo "*** Perl is required to build OpenSSL shared libraries." 1>&2
+    OK=0
+    if [ "$PLATFORM" = "NT" ]; then
+	echo "*** Install the 'perl' package from the 'interpreters' category." 1>&2
+    fi
+fi
+
+PATCH=`which patch 2>/dev/null`
+if [ -z "$PATCH" ]; then
+    echo "*** Patch is required to apply patches to downloaded packages." 1>&2
+    OK=0
+    if [ "$PLATFORM" = "NT" ]; then
+	echo "*** Install the 'patchutils' package from the 'utils' category." 1>&2
+    fi
+fi
+
+WGET=`which wget 2>/dev/null`
+if [ -z "$WGET" ]; then
+    echo "*** Wget is required to download source packages." 1>&2
+    OK=0
+    if [ "$PLATFORM" = "NT" ]; then
+	echo "***Install the 'wget' package from the 'web' category." 1>&2
+    fi
+fi
+
+UNZIP=`which unzip 2>/dev/null`
+if [ -z "$UNZIP" ]; then
+    echo "*** Missing utility 'Unzip' is required to unpack some packages." 1>&2
+    OK=0
+    if [ "$PLATFORM" = "NT" ]; then
+	echo "*** Install the 'unzip' package from the 'archive' category." 1>&2
+    fi
+fi
+
+if [ $OK -eq 0 ]; then
+    echo
+    echo "Some required tools could not be found - exiting." 1>&2
+    exit 1
+fi
+

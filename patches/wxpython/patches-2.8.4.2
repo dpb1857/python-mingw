@@ -1,0 +1,131 @@
+*** ./wxPython/config.py.orig	Fri Sep 21 13:27:05 2007
+--- ./wxPython/config.py	Wed Dec  5 20:15:29 2007
+***************
+*** 323,328 ****
+--- 323,329 ----
+              # should we exit?
+  
+          # TODO:  execute WX_CONFIG --list and verify a matching config is found
++         print "WX_CONFIG:", WX_CONFIG
+          
+  
+  def run_swig(files, dir, gendir, package, USE_SWIG, force, swig_args,
+***************
+*** 777,783 ****
+  # Setup some platform specific stuff
+  #----------------------------------------------------------------------
+  
+! if os.name == 'nt':
+      # Set compile flags and such for MSVC.  These values are derived
+      # from the wxWidgets makefiles for MSVC, other compilers settings
+      # will probably vary...
+--- 778,784 ----
+  # Setup some platform specific stuff
+  #----------------------------------------------------------------------
+  
+! if os.name == 'old_nt':
+      # Set compile flags and such for MSVC.  These values are derived
+      # from the wxWidgets makefiles for MSVC, other compilers settings
+      # will probably vary...
+***************
+*** 854,860 ****
+--- 855,953 ----
+          pass # cflags = cflags + ['/Od', '/Z7']
+               # lflags = ['/DEBUG', ]
+  
++ elif os.name == 'nt':
++     # Set compile flags and such for MINGW.
++     # This section was initially copied from the MSVC section...
++     if os.environ.has_key('WXWIN'):
++         WXDIR = os.environ['WXWIN']
++     else:
++         if os.path.exists('..\\wxWidgets'):
++             WXDIR = '..\\wxWidgets'  # assumes in parallel SVN tree
++         else:
++             WXDIR = '..'  # assumes wxPython is subdir
++         msg("WARNING: WXWIN not set in environment. Assuming '%s'" % WXDIR)
++     WXPLAT = '__WXMSW__'
++     GENDIR = 'msw'
++   
++     includes = ['include', 'src',
++                 opj(WXDIR, 'lib', 'vc_dll', 'msw'  + libFlag()),
++                 opj(WXDIR, 'include'),
++                 opj(WXDIR, 'contrib', 'include'),
++                 ]
++ 
++     defines = [ ('WIN32', None),
++                 ('_WINDOWS', None),
++ 
++                 (WXPLAT, None),
++                 ('WXUSINGDLL', '1'),
++ 
++                 ('SWIG_TYPE_TABLE', WXPYTHON_TYPE_TABLE),
++                 ('SWIG_PYTHON_OUTPUT_TUPLE', None),
++                 ('WXP_USE_THREAD', '1'),
++                 ]
++ 
++     if UNDEF_NDEBUG:
++         defines.append( ('NDEBUG',) )  # using a 1-tuple makes it do an undef
+  
++     if HYBRID:
++         defines.append( ('__NO_VC_CRTDBG__', None) )
++ 
++     if not FINAL or HYBRID:
++         defines.append( ('__WXDEBUG__', None) )
++     if UNICODE:
++         defines.append( ('wxUSE_UNICODE', 1) )
++         libdirs = [ opj(WXDIR, 'lib', 'vc_dll') ]
++ 
++     # Copied from posix...
++     lflags = os.popen('bash wx-config --libs', 'r').read()[:-1]
++     MONOLITHIC = (lflags.find("_xrc") == -1)
++ 
++     WXBASENAME = os.popen('bash wx-config --basename', 'r').read()[:-1]
++     WXRELEASE  = os.popen('bash wx-config --release', 'r').read()[:-1]
++ 
++     if MONOLITHIC:
++         libs = ["%s-%s" % (WXBASENAME, WXRELEASE)]
++     else:
++         libs = [ 'wxbase' + WXDLLVER + libFlag(), 
++                  'wxbase' + WXDLLVER + libFlag() + '_net',
++                  'wxbase' + WXDLLVER + libFlag() + '_xml',
++                  makeLibName('core')[0],
++                  makeLibName('adv')[0],
++                  makeLibName('html')[0],
++                  ]
++ 
++     libs = libs + ['kernel32', 'user32', 'gdi32', 'comdlg32',
++             'winspool', 'winmm', 'shell32', 'comctl32',
++             'odbc32', 'ole32', 'oleaut32', 'uuid', 'rpcrt4',
++             'advapi32', 'wsock32']
++ 
++     # Copied from posix...
++     cflags = os.popen('bash wx-config --cxxflags', 'r').read()[:-1]
++ 
++     cflags = cflags.split()
++     for i in range(len(cflags)):
++         if cflags[i][:2] == "-I":
++             dos_incl = os.popen('cygpath -m '+cflags[i][2:]).read()[:-1]
++             cflags[i] = "-I"+dos_incl
++ 
++     if debug:
++         cflags.append('-g')
++         cflags.append('-O0')
++     else:
++         cflags.append('-O3')
++ 
++ 
++     lflags = None
++ 
++     # Other MSVC flags...
++     # Too bad I don't remember why I was playing with these, can they be removed?
++     if FINAL:
++         pass #cflags = cflags + ['/O1']
++     elif HYBRID :
++         pass #cflags = cflags + ['/Ox']
++     else:
++         pass # cflags = cflags + ['/Od', '/Z7']
++              # lflags = ['/DEBUG', ]
+  
+  #----------------------------------------------------------------------
+  

@@ -1,0 +1,53 @@
+# -*- Makefile -*-
+
+# http://pyinstaller.python-hosting.com/
+PYINSTALLER_URL = http://pyinstaller.hpcf.upr.edu/source/$(PYINSTALLER_VERSION)/pyinstaller_$(PYINSTALLER_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "pyinstaller:\t$(PYINSTALLER_VERSION)\t\tGenerate a single executable"
+
+pyinstaller: python25 pyinstaller-download pyinstaller-unpack pyinstaller-install
+
+.PHONY: pyinstaller
+
+################################################################################
+# Setup: create targets for:
+#   pyinstaller-download
+#   pyinstaller-unpack
+#   pyinstaller-do-unpack
+################################################################################
+
+$(eval $(call setup,pyinstaller,$(PYINSTALLER_URL),$(PYINSTALLER_VERSION),pyinstaller-$(PYINSTALLER_VERSION)))
+
+################################################################################
+# Install & clean targets:
+#   pyinstaller-install
+#   pyinstaller-do-install
+#   pyinstaller-clean
+################################################################################
+
+pyinstaller-install: timestamps/pyinstaller-install
+
+timestamps/pyinstaller-install: | timestamps
+	cd ../src/pyinstaller && $(BASE)/work/bin/python Configure.py
+ifneq "$(PLATFORM)" "WIN32"	
+	cd ../src/pyinstaller/source/linux && $(BASE)/work/bin/python Make.py
+	$(MAKE) -C ../src/pyinstaller/source/linux
+endif
+	touch timestamps/pyinstaller-install
+
+clean:: pyinstaller-clean
+ 
+pyinstaller-clean:
+	-@if [ -d ../src/pyinstaller ]; then \
+	    echo "Cleanup pyinstaller"; \
+	    cd ../src/pyinstaller; \
+	    rm -f config.dat; \
+	    rm -f support/useUnicode.py; \
+	    rm -f *.pyc */*.pyc; \
+	fi
+	rm -f timestamps/pyinstaller-*
+
+distclean:: pyinstaller-clean
+
+.PHONY: pyinstaller-install pyinstaller-clean 

@@ -1,0 +1,12 @@
+# -*- Makefile -*-
+
+CONFIG_SQLITE_SHARED = yes
+
+# These two should be set the same;
+CONFIG_C-ARES_SHARED = yes
+CONFIG_CURL_SHARED   = yes
+
+CONFIG_OPENSSL_SHARED = yes
+
+CONFIG_LIBXML2_SHARED = yes
+CONFIG_LIBXSLT_SHARED = yes

@@ -1,0 +1,87 @@
+*** ./configure.orig	Sun Sep  2 14:53:27 2007
+--- ./configure	Mon Oct  1 16:05:41 2007
+***************
+*** 5871,5883 ****
+    # Base MSYS/MinGW do not provide the 'file' command needed by
+    # func_win32_libid shell function, so use a weaker test based on 'objdump',
+    # unless we find 'file', for example because we are cross-compiling.
+!   if ( file / ) >/dev/null 2>&1; then
+!     lt_cv_deplibs_check_method='file_magic ^x86 archive import|^x86 DLL'
+!     lt_cv_file_magic_cmd='func_win32_libid'
+!   else
+      lt_cv_deplibs_check_method='file_magic file format pei*-i386(.*architecture: i386)?'
+      lt_cv_file_magic_cmd='$OBJDUMP -f'
+!   fi
+    ;;
+  
+  darwin* | rhapsody*)
+--- 5871,5885 ----
+    # Base MSYS/MinGW do not provide the 'file' command needed by
+    # func_win32_libid shell function, so use a weaker test based on 'objdump',
+    # unless we find 'file', for example because we are cross-compiling.
+! # XXX dpb: comment out this check for the file command; If it finds a cygwin version,
+! # it will not be able to correctly build a shared library that links in other libs; 
+! #   if ( file / ) >/dev/null 2>&1; then
+! #     lt_cv_deplibs_check_method='file_magic ^x86 archive import|^x86 DLL'
+! #     lt_cv_file_magic_cmd='func_win32_libid'
+! #   else
+      lt_cv_deplibs_check_method='file_magic file format pei*-i386(.*architecture: i386)?'
+      lt_cv_file_magic_cmd='$OBJDUMP -f'
+! #   fi
+    ;;
+  
+  darwin* | rhapsody*)
+***************
+*** 36868,36874 ****
+  
+  
+    LIBS="$LIBS -lws2_32"
+!   TEST_SERVER_LIBS="$TEST_SERVER_LIBS -lws2_32"
+  
+  fi
+  
+--- 36870,36876 ----
+  
+  
+    LIBS="$LIBS -lws2_32"
+!   TEST_SERVER_LIBS="$TEST_SERVER_LIBS -lws2_32 -lwinmm"
+  
+  fi
+  
+***************
+*** 36969,36975 ****
+  # Let make expand exec_prefix.
+  test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+  
+! DEFS=-DHAVE_CONFIG_H
+  
+  ac_libobjs=
+  ac_ltlibobjs=
+--- 36971,36981 ----
+  # Let make expand exec_prefix.
+  test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+  
+! if [ "$enable_shared" = "no" ]; then
+!     DEFS="-DHAVE_CONFIG_H -DCURL_STATICLIB"
+! else
+!     DEFS=-DHAVE_CONFIG_H
+! fi
+  
+  ac_libobjs=
+  ac_ltlibobjs=
+*** ./docs/examples/10-at-a-time.c.orig	Wed Jun 27 14:35:17 2007
+--- ./docs/examples/10-at-a-time.c	Mon Oct  1 13:05:12 2007
+***************
+*** 138,144 ****
+--- 138,148 ----
+          L = 100;
+  
+        if (M == -1) {
++ #ifdef __WIN32__
++ 	Sleep(L);
++ #else
+          sleep(L / 1000);
++ #endif
+        } else {
+          T.tv_sec = L/1000;
+          T.tv_usec = (L%1000)*1000;

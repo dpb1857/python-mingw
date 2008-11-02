@@ -1,0 +1,62 @@
+# -*- Makefile -*-
+
+# http://www.bzip.org/
+BZIP2_URL = http://www.bzip.org/$(BZIP2_VERSION)/bzip2-$(BZIP2_VERSION).tar.gz
+
+modulelist::
+	@/bin/echo -e "bzip2:\t\t$(BZIP2_VERSION)\t\tbzip2 support"
+
+bzip2: bzip2-download bzip2-unpack bzip2-configure bzip2-build bzip2-install
+
+.PHONY: bzip2
+
+################################################################################
+# Setup: create targets for:
+#   bzip2-download
+#   bzip2-unpack
+#   bzip2-do-unpack
+################################################################################
+
+$(eval $(call setup,bzip2,$(BZIP2_URL),$(BZIP2_VERSION),bzip2-$(BZIP2_VERSION)))
+
+################################################################################
+# Configure;
+################################################################################
+
+# No configuration for bzip2;
+bzip2-configure: ;
+
+################################################################################
+# Create build targets:
+#   bzip2-build
+#   bzip2-do-build
+################################################################################
+
+bzip2-TEST_TARGET = libbz2.a
+$(eval $(call configure-build,bzip2))
+
+################################################################################
+# Create install & clean targets:
+#   bzip2-install
+#   bzip2-do-install
+#   bzip2-clean
+#   bzip2-distclean
+################################################################################
+
+bzip2-MAKE_INSTALL_PARAM = PREFIX=$(BASE)/work
+$(eval $(call configure-install-clean,bzip2))
+
+################################################################################
+# Test;
+################################################################################
+
+test:: bzip2-test
+
+bzip2-test:
+	@if [ -f ../src/bzip2/Makefile ]; then	\
+	    echo "***** TESTING BZIP2 *****";	\
+	    $(MAKE) -C ../src/bzip2 test; 	\
+	fi
+
+.PHONY: bzip2-test
+

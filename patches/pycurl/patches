@@ -1,0 +1,29 @@
+*** ./setup.py.orig	Wed Jul 11 10:31:07 2007
+--- ./setup.py	Sat Sep 29 00:29:00 2007
+***************
+*** 68,75 ****
+      print "Using curl directory:", CURL_DIR
+      assert os.path.isdir(CURL_DIR), "please check CURL_DIR in setup.py"
+      include_dirs.append(os.path.join(CURL_DIR, "include"))
+!     extra_objects.append(os.path.join(CURL_DIR, "lib", "libcurl.lib"))
+!     extra_link_args.extend(["gdi32.lib", "winmm.lib", "ws2_32.lib",])
+      add_libdirs("LIB", ";")
+      if string.find(sys.version, "MSC") >= 0:
+          extra_compile_args.append("-O2")
+--- 68,83 ----
+      print "Using curl directory:", CURL_DIR
+      assert os.path.isdir(CURL_DIR), "please check CURL_DIR in setup.py"
+      include_dirs.append(os.path.join(CURL_DIR, "include"))
+! 
+!     dll_link_lib = os.path.join(CURL_DIR, "lib", "libcurl.dll.a")
+!     static_lib = os.path.join(CURL_DIR, "lib", "libcurl.a")
+!     if os.path.isfile(dll_link_lib):
+!         extra_objects.append(dll_link_lib)
+!     else:
+!         extra_objects.append(static_lib)
+!         extra_link_args.extend(["-lssl", "-lcrypto", "-lz", "-lcares", "-lwldap32",])
+! 
+!     extra_link_args.extend(["-lgdi32", "-lwinmm", "-lws2_32",])
+      add_libdirs("LIB", ";")
+      if string.find(sys.version, "MSC") >= 0:
+          extra_compile_args.append("-O2")

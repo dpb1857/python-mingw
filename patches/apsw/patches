@@ -1,0 +1,16 @@
+*** setup.py.orig	2007-05-14 15:39:34.000000000 -0700
+--- setup.py	2007-05-14 15:32:49.000000000 -0700
+***************
+*** 18,23 ****
+--- 18,28 ----
+  include_dirs=[]
+  library_dirs=[]
+  
++ path = os.environ.get("INCL_PATH", "../../work/include")
++ include_dirs.append(path)
++ path = os.environ.get("LIB_PATH", "../../work/lib")
++ library_dirs.append(path)
++ 
+  # if there is a sqlite3 subdirectory then use that
+  if os.path.exists("sqlite3"):
+      include_dirs=["sqlite3"]

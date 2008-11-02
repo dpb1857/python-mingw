@@ -1,0 +1,48 @@
+# -*- Makefile -*-
+
+# http://www.freetype.org/, http://freetype.sourceforge.net/
+FREETYPE_URL = http://prdownloads.sourceforge.net/freetype/freetype-$(FREETYPE_VERSION).tar.bz2
+
+modulelist::
+	@/bin/echo -e "freetype:\t$(FREETYPE_VERSION)\t\tFreetype Library"
+
+freetype: freetype-download freetype-unpack freetype-configure freetype-build freetype-install
+
+.PHONY: freetype
+
+################################################################################
+# Setup: create targets for:
+#   freetype-download
+#   freetype-unpack
+#   freetype-do-unpack
+################################################################################
+
+$(eval $(call setup,freetype,$(FREETYPE_URL),$(FREETYPE_VERSION),freetype-$(FREETYPE_VERSION),1))
+
+################################################################################
+# Configure;
+################################################################################
+
+freetype-configure:
+	@if [ ! -f ../src/freetype/config.mk ]; then \
+	    echo "configure freetype"; \
+	    cd ../src/freetype && ./configure --prefix=$(BASE)/work; \
+	fi
+
+################################################################################
+# Create build targets:
+#   freetype-build
+#   freetype-do-build
+################################################################################
+
+$(eval $(call configure-build,freetype))
+
+################################################################################
+# Create install & clean targets:
+#   freetype-install
+#   freetype-do-install
+#   freetype-clean
+#   freetype-distclean
+################################################################################
+
+$(eval $(call configure-install-clean,freetype))

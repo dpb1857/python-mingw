@@ -1,0 +1,112 @@
+# -*- Makefile -*-
+
+# http://curl.haxx.se/
+CURL_URL = http://curl.haxx.se/download/curl-$(CURL_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+CURL_HOST_EXPR = --host=i686-pc-mingw32
+endif
+
+ifeq "$(CONFIG_CURL_SHARED)" "yes"
+CURL_SHARED = --enable-shared=yes
+else
+CURL_SHARED = --enable-shared=no
+endif
+
+
+modulelist::
+	@/bin/echo -e "curl:\t\t$(CURL_VERSION)\t\tcURL library"
+
+
+curl: curl-download curl-unpack curl-configure curl-build curl-install
+
+.PHONY: curl
+
+################################################################################
+# Setup: create targets for:
+#   curl-download
+#   curl-unpack
+#   curl-do-unpack
+################################################################################
+
+curl-UNPACK_HOOK = 1
+$(eval $(call setup,curl,$(CURL_URL),$(CURL_VERSION),curl-$(CURL_VERSION)))
+
+curl-unpack-hook:
+	rm -f ../src/curl/Makefile
+
+################################################################################
+# Configure;
+################################################################################
+
+# Loose coupling between prerequisite libraries & curl, in case their download or build fails;
+timestamps/curl-prereq:
+	@for lib in c-ares zlib openssl; do \
+	    echo "checking $$lib"; \
+	    $(MAKE) --no-print-directory "$$lib"; \
+	    if [ $$? -ne 0 ]; then \
+		echo "***** Cannot make library $$lib"; \
+	    fi \
+	done
+	touch timestamps/curl-prereq
+
+curl-configure: | timestamps timestamps/curl-prereq
+	@if [ ! -f ../src/curl/Makefile ]; then \
+	    echo "configure curl"; \
+	    set -x; 	\
+	    cd ../src/curl && 				\
+		./configure --prefix=$(BASE)/work 	\
+		--with-zlib=$(BASE)/work		\
+		--with-ssl=$(BASE)/work			\
+		--enable-ares=$(BASE)/work		\
+		$(CURL_SHARED)				\
+		--disable-dependency-tracking		\
+		$(CURL_HOST_EXPR);			\
+	fi
+
+.PHONY: curl-configure
+
+################################################################################
+# Create build targets:
+#   curl-build
+#   curl-do-build
+################################################################################
+
+$(eval $(call configure-build,curl))
+
+################################################################################
+# Create install & clean targets:
+#   curl-install
+#   curl-do-install
+#   curl-clean
+#   curl-distclean
+################################################################################
+
+curl-DISTCLEAN_HOOK = 1
+$(eval $(call configure-install-clean,curl))
+
+curl-distclean-hook:
+	rm -f ../src/curl/Makefile
+
+################################################################################
+# Test;
+################################################################################
+
+test:: curl-test
+
+curl-test:
+	@if [ -f ../src/curl/Makefile ]; then	\
+	    echo "***** TESTING CURL *****";	\
+	    $(MAKE) -C ../src/curl test;	\
+	fi
+
+.PHONY: curl-test
+
+################################################################################
+# Patches;
+#   curl-patches
+#   curl-patches-revert
+#   curl-patches-apply
+################################################################################
+
+$(eval $(call patches,curl))

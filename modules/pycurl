@@ -1,0 +1,46 @@
+# -*- Makefile -*-
+
+# http://pycurl.sourceforge.net/
+PYCURL_URL = http://pycurl.sourceforge.net/download/pycurl-$(PYCURL_VERSION).tar.gz
+
+ifeq "$(PLATFORM)" "WIN32"
+CURL_DIR=$(shell cygpath -m $(BASE)/work)
+PYCURL_INSTALL_ARGS = --curl-dir=$(CURL_DIR)
+else
+PYCURL_INSTALL_ARGS = --curl-config=$(BASE)/work/bin/curl-config
+endif
+
+modulelist::
+	@/bin/echo -e "pycurl:\t\t$(PYCURL_VERSION)\t\tPython interface to the Curl library"
+
+pycurl: python25 curl pycurl-download pycurl-unpack pycurl-install
+
+.PHONY: pycurl
+
+################################################################################
+# Setup: create targets for:
+#   pycurl-download
+#   pycurl-unpack
+#   pycurl-do-unpack
+################################################################################
+
+$(eval $(call setup,pycurl,$(PYCURL_URL),$(PYCURL_VERSION),pycurl-$(PYCURL_VERSION)))
+
+################################################################################
+# Create install & clean targets:
+#   pycurl-install
+#   pycurl-do-install
+#   pycurl-clean
+################################################################################
+
+pycurl-INSTALL_ARGS = $(PYCURL_INSTALL_ARGS)
+$(eval $(call pymodule-install-clean,pycurl))
+
+################################################################################
+# Patches;
+#   pycurl-patches
+#   pycurl-patches-revert
+#   pycurl-patches-apply
+################################################################################
+
+$(eval $(call patches,pycurl))

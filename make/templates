@@ -1,0 +1,291 @@
+# -*- Makefile -*-
+
+##################################################
+# TEMPLATES
+##################################################
+
+##########################################################################################
+# Setup: generate targets to download and unpack a module;
+# $(eval $(call setup,<MODULE-NAME>,<LOCATION>,<VERSION>,<UNPACK-DIRNAME>))
+#
+# Example:
+# $(eval $(call setup,pylucene,$(PYL_URL),$(PYL_VERSION),PyLucene-src-$(PYL_VERSION)))
+#
+##########################################################################################
+
+define setup
+
+###
+### Download the package as part of a 'make download';
+###
+
+download:: $(1)-download
+
+###
+### <MODULE>-download
+###
+
+$(1)-download: $(BASE)/download/$(notdir $(2))
+
+$(1)-do-download $(BASE)/download/$(notdir $(2)): | $(BASE)/download
+	echo "downloading $(1)"
+	cd $(BASE)/download && wget $(2)
+ifeq (1,$$(strip $$($(1)-DOWNLOAD_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-download-hook
+endif
+
+###
+### <MODULE>-unpack:    unpack if not there or if there is a version mismatch;
+### <MODULE>-do-unpack: always execute the unpack;
+###
+
+$(1)-unpack: $(1)-download $(BASE)/src/$(1)/VERSION_$(3)
+
+$(1)-do-unpack $(BASE)/src/$(1)/VERSION_$(3): | $(BASE)/src
+	@ # Remove the old directory if it doesn't have a matching version number;
+	@if [ -d $(BASE)/src/$(1) ]; then cd $(BASE)/src && echo "Removing old $(1)..." && rm -rf $(1); fi
+	@echo "Unpacking $(1)..."
+ifneq (,$(findstring .tar.gz,$(notdir $(2)))$(findstring .tgz,$(notdir $(2))))
+	cd $(BASE)/src && tar xzf $(BASE)/download/$(notdir $(2)) 
+else
+ifneq (,$(findstring .zip,$(notdir $(2))))
+	cd $(BASE)/src && unzip -q $(BASE)/download/$(notdir $(2))
+else
+ifneq (,$(findstring .tar.bz2,$(notdir $(2))))
+	cd $(BASE)/src && bunzip2 < $(BASE)/download/$(notdir $(2)) | tar xf - 
+else
+	@echo "Cannot unpack file $(BASE)/download/$(notdir $(2)), unknown file type."
+	@exit 1
+endif
+endif
+endif
+	@# Rename the unpacked source directory to match our module name;
+	cd $(BASE)/src && mv $(4) $(1)
+ifeq (1,$$(strip $$($(1)-UNPACK_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-unpack-hook
+endif	
+	# Apply patches if we can find a patches file;
+	-@$(MAKE) --no-print-directory $(1)-patches-apply
+	touch $(BASE)/src/$(1)/VERSION_$(3)
+###
+### Declare phony targets;
+###
+.PHONY: $(1)-download $(1)-do-download $(1)-unpack $(1)-do-unpack
+endef
+
+##########################################################################################
+# configure-build-common: 
+# common stuff for all configure-build templates;
+##########################################################################################
+
+define configure-build-common
+
+$(1)-build: timestamps/$(1)-build
+
+$(1)-do-build: | timestamps
+	$(MAKE) -w -C $(BASE)/src/$(1)
+ifeq (1,$$(strip $$($(1)-BUILD_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-build-hook
+endif
+	touch timestamps/$(1)-build
+
+.PHONY: $(1)-build $(1)-do-build 
+endef
+
+################################################################################
+### The configure-build templates perform a test to see if we need to run 'make';
+### If not, leave the timestamp alone if it exists, create it if not;
+### If so, the do it!
+################################################################################
+
+###
+### The 'configure-build' template runs a 'make -q' to see if work needs to be done;
+###
+
+define configure-build
+
+timestamps/$(1)-build: $(1)-configure | timestamps
+	@$(MAKE) -C $(BASE)/src/$(1) $$($(1)-TEST_TARGET) -q >/dev/null;\
+	if [ $$$$? -eq 0 ]; then			\
+	    if [ ! -f timestamps/$(1)-build ]; then 	\
+		touch timestamps/$(1)-build;		\
+	    fi						\
+	else						\
+	    $(MAKE) $(1)-do-build --no-print-directory;	\
+	    touch timestamps/$(1)-build;		\
+	fi
+
+$(call configure-build-common,$(1))
+endef
+
+###
+### The 'configure-build-filecheck' tests for the existence of a file to see
+### if work needs to be done;
+###
+
+define configure-build-filecheck
+
+timestamps/$(1)-build: $(1)-configure | timestamps
+	@test -f $$($(1)-TEST_TARGET); 			\
+	if [ $$$$? -eq 0 ]; then			\
+	    if [ ! -f timestamps/$(1)-build ]; then 	\
+		touch timestamps/$(1)-build;		\
+	    fi						\
+	else						\
+	    $(MAKE) $(1)-do-build --no-print-directory;	\
+	    touch timestamps/$(1)-build;		\
+	fi
+
+$(call configure-build-common,$(1))
+endef
+
+##########################################################################################
+# configure-install-clean: generate targets for installing & cleaning the package;
+# Use with packages built with configure/make.
+#
+# $(eval $(call configure-install-clean,<MODULE-NAME>))
+##########################################################################################
+
+define configure-install-clean
+
+## 
+## <MODULE>-install
+## <MODULE>-do-install
+##
+
+$(1)-install: timestamps/$(1)-install
+
+$(1)-do-install timestamps/$(1)-install: timestamps/$(1)-build
+	cd $(BASE)/src/$(1) && $(MAKE) $$($(1)-MAKE_INSTALL_PARAM) install $$($(1)-ADDL_INSTALL_TARGETS)
+ifeq (1,$$(strip $$($(1)-INSTALL_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-install-hook
+endif
+	touch timestamps/$(1)-install
+
+.PHONY: $(1)-install $(1)-do-install
+
+##
+## <MODULE>-clean
+## <MODULE>-distclean
+##
+
+clean:: $(1)-clean
+
+$(1)-clean:
+	-@if [ -f $(BASE)/src/$(1)/Makefile ]; then	\
+	    echo "Cleaning $(1)";		\
+	    $(MAKE) -k -C $(BASE)/src/$(1) clean;	\
+	fi
+ifeq (1,$$(strip $$($(1)-CLEAN_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-clean-hook
+endif
+	rm -f timestamps/$(1)-*
+
+distclean:: $(1)-distclean
+
+$(1)-distclean:	$(1)-clean
+	-@if [ -f $(BASE)/src/$(1)/Makefile ]; then 	\
+	    echo "Distcleaning $(1)";		\
+	    $(MAKE) -k -C $(BASE)/src/$(1) distclean;	\
+	fi
+ifeq (1,$$(strip $$($(1)-DISTCLEAN_HOOK)))
+	-@$(MAKE) --no-print-directory $(1)-distclean-hook
+endif
+
+
+.PHONY: $(1)-clean
+endef
+
+.PHONY: clean distclean
+
+##########################################################################################
+# pymodule-install-clean: generate targets for installing & cleaning 
+# a module that is installed by running a setup.py script;
+#
+# $(eval $(call configure-install-clean,<MODULE-NAME>))
+##########################################################################################
+
+define pymodule-install-clean
+
+## 
+## <MODULE>-install
+## <MODULE>-do-install
+##
+
+$(1)-install: $$($(1)-PREREQ) timestamps/$(1)-install
+
+$(1)-do-install timestamps/$(1)-install: | timestamps
+	cd $(BASE)/src/$(1) && env $$($(1)-SETUP_ENVIRON) $(BASE)/work/bin/python setup.py install $$($(1)-INSTALL_ARGS)
+	touch timestamps/$(1)-install
+
+.PHONY: $(1)-install $(1)-do-install
+
+##
+## <MODULE>-clean
+##
+
+clean:: $(1)-clean
+
+$(1)-clean:
+	@if [ -d $(BASE)/src/$(1) ]; then	\
+	    echo "Cleaning $(1)";	\
+	    cd $(BASE)/src/$(1);		\
+	    rm -rf build; 		\
+	    if [ -f Makefile ]; then 	\
+		$(MAKE) clean;		\
+	    fi				\
+	fi
+	rm -f timestamps/$(1)-*
+
+distclean:: $(1)-clean
+
+$(1)-distclean: $(1)-clean
+
+endef
+
+##########################################################################################
+# Patches: to generate patch targets for a module, add the following to the module file:
+# $(eval $(call patches, <MODULE-NAME>[,MODULE-VERSION]))
+##########################################################################################
+
+define patches
+$(1)-patches:
+	@cd $(BASE)/src/$(1);\
+	rm -f patches;	\
+	touch patches;	\
+	for orig_file in `find . -name \*.orig -print | grep -v tests`; do \
+	    echo $$$$orig_file; \
+	    file=`echo $$$$orig_file | sed 's/.orig//'`; \
+	    diff -c $$$$file.orig $$$$file >> patches; \
+	done; \
+	exit 0
+	cp $(BASE)/src/$(1)/patches patches/$(1)/patches
+
+$(1)-patches-revert:
+	@cd $(BASE)/src/$(1); \
+	rm -f patches;   \
+	for orig_file in `find . -name \*.orig -print`; do \
+	    echo "Restoring $$$$orig_file"; \
+	    file=`echo $$$$orig_file | sed 's/.orig//'`; \
+	    mv -f $$$$file $$$$file.sav; \
+	    mv $$$$file.orig $$$$file; \
+	done; 
+
+$(1)-patches-apply:
+	@if [ -f patches/$(1)/patches-$(2) ]; then 		\
+	    set -x;						\
+	    cp patches/$(1)/patches-$(2) $(BASE)/src/$(1)/patches; \
+	    set +x;						\
+	elif [ -f patches/$(1)/patches ]; then			\
+	    set -x;						\
+	    cp patches/$(1)/patches $(BASE)/src/$(1)/patches; 	\
+	    set +x;						\
+	fi	    
+	@if [ -f $(BASE)/src/$(1)/patches ]; then		\
+	    set -x;						\
+	    cd $(BASE)/src/$(1) && patch -b -p0 < patches;	\
+	fi
+
+
+.PHONY: $(1)-patches $(1)-patches-revert $(1)-patches-apply
+endef

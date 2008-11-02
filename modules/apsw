@@ -1,0 +1,39 @@
+# -*- Makefile -*-
+
+# http://initd.org/tracker/pysqlite/wiki/APSW
+APSW_URL = http://initd.org/pub/software/pysqlite/apsw/$(APSW_VERSION)/apsw-$(APSW_VERSION).zip
+
+modulelist::
+	@/bin/echo -e "apsw:\t\t$(APSW_VERSION)\tAnother Python SQLite wrapper"
+
+apsw: sqlite python25 apsw-download apsw-unpack apsw-install
+
+.PHONY: apsw
+
+################################################################################
+# Setup: create targets for:
+#   apsw-download
+#   apsw-unpack
+#   apsw-do-unpack
+################################################################################
+
+$(eval $(call setup,apsw,$(APSW_URL),$(APSW_VERSION),apsw-$(APSW_VERSION)))
+
+
+################################################################################
+# Create install & clean targets:
+#   apsw-install
+#   apsw-do-install
+#   apsw-clean
+################################################################################
+
+$(eval $(call pymodule-install-clean,apsw))
+
+################################################################################
+# Patches;
+#   apsw-patches
+#   apsw-patches-revert
+#   apsw-patches-apply
+################################################################################
+
+$(eval $(call patches,apsw))
