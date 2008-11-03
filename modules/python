@@ -154,7 +154,9 @@ python-install-hook:
 	$(BASE)/work/bin/python scripts/build-distutils-cfg.py
 
 python-distclean-hook:
-	rm -f ../src/python/Makefile.pre.in
+	if [ -f ../src/python/Makefile.pre.in-unix ]; then \
+	    rm -f ../src/python/Makefile.pre.in; \
+	fi
 
 python-sharedmod-clean:
 	-@cd ../src/python && rm -rf build
