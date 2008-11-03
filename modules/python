@@ -1,0 +1,235 @@
+# -*- Makefile -*- 
+
+# http://www.python.org/
+PYTHON_URL = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
+
+# XXX TODO: remove SVN references;
+# Dev
+SVN_BASE = https://python-mingw.svn.sourceforge.net/svnroot/python-mingw
+
+PYTHON_MINGW_BRANCH = python/branches/2.5.1-mingw
+# PYTHON_MINGW_BRANCH = python/tags/mingw-2.5.1v1
+
+PYTHON_PREV_BRANCH  = python/tags/mingw-2.5.1v1
+
+
+# XXX NOTE: 11/2/2008: no external libs for now while working on using git
+# EXTERNAL_LIBS = zlib bzip2 gdbm sqlite openssl
+EXTERNAL_LIBS = 
+
+ifeq "$(PLATFORM)" "WIN32"
+PY_HOST_EXPR = --host=i686-pc-mingw32
+# XXX change the way we do this; PYTHON_MASTER_APPLY_PATCHES = python-master-apply-patches
+endif
+
+####################################################################################################
+# XXX XXX update for git
+# We can directly control where the python sources are taken from by setting the environment
+# variable PYTHON to:
+#   "checkout" to do a svn checkout;
+#   "master"   to download python from python.org and apply the mingw patches;
+#
+# If the patches file exists for python, we're working with a downloaded makefile 
+# package and we can simply apply the patches to the python.org sources.
+#
+# If the patches file does not exist, we should be working out of a checked-out 
+# makefile tree, in which case we will do a 'svn checkout' of the python sources.
+####################################################################################################
+
+ifeq "$(PYTHON)" ""
+ifeq "$(wildcard patches/python/patches)" ""
+PYTHON_SRC = python-src-checkout
+else
+PYTHON_SRC = python-src-master
+endif
+else
+PYTHON_SRC = python-src-$(PYTHON)
+endif
+
+help::
+	@echo
+	@echo "Type 'make python-help' for more python-targets."
+
+python-help:
+	@echo "make python"
+	@echo "        builds python2.6."
+	@echo "make python-libs"
+	@echo "        build the libraries we need before building the python shared mods."
+	@echo "make python-sharedmod"
+	@echo "        build python2.6 shared modules."
+	@echo "make python-sharedmod-clean"
+	@echo "        removes shared modules from the src tree."
+	@echo "make python-win32-release"
+	@echo "        creates a release layout close to matching the default win32 release."
+	@echo "make python-mingw-base-changes"
+	@echo "        diffs from official python release to mingw branch."
+	@echo "make python-mingw-branch-changes"
+	@echo "        diffs from previous tag to current mingw branch."
+	@echo "make python-checkout"
+	@echo "        checkout the python mingw source tree."
+	@echo "        (or export PYTHON=checkout)"
+
+
+modulelist::
+	@/bin/echo -e "python:\t\t$(PYTHON_VERSION)\t\tPython"
+
+python: python-src python-configure python-build python-install
+
+.PHONY: python
+
+################################################################################
+# Setup: create targets for:
+#   python-download
+#   python-unpack
+#   python-do-unpack
+################################################################################
+
+$(eval $(call setup,python,$(PYTHON_URL),$(PYTHON_VERSION),Python-$(PYTHON_VERSION)))
+
+python-src: $(PYTHON_SRC)
+python-src-checkout: python-checkout
+python-src-master:   python-download python-unpack
+
+python-checkout: | ../src
+	@if [ ! -d ../src/python ]; then \
+	    echo "checkout python"; set -x;\
+	    svn checkout $(SVN_BASE)/$(PYTHON_MINGW_BRANCH) ../src/python; \
+	fi
+
+.PHONY: python-src python-src-checkout python-src-master
+
+################################################################################
+# Configure;
+################################################################################
+
+# Loose coupling between prerequisite libraries & python, in case their download or build fails;
+timestamps/python-prereq:
+	@for lib in $(EXTERNAL_LIBS); do \
+	    echo "checking $$lib"; \
+	    $(MAKE) --no-print-directory "$$lib"; \
+	    if [ $$? -ne 0 ]; then \
+		echo "***** Cannot make library $$lib"; \
+	    fi \
+	done
+	touch timestamps/python-prereq
+
+python-configure: | timestamps timestamps/python-prereq
+	@if [ ! -f ../src/python/Makefile ]; then \
+	    echo "configure python"; \
+	    set -x; \
+	    cd ../src/python && ./configure \
+		--prefix=$(BASE)/work 	\
+		$(PY_HOST_EXPR); \
+	fi
+
+.PHONY: python-configure
+
+################################################################################
+# Create build targets:
+#   python-build
+#   python-do-build
+################################################################################
+
+python-TEST_TARGET = python$(EXE)
+$(eval $(call configure-build,python))
+
+python-sharedmod:
+	$(MAKE) -C ../src/python sharedmods
+
+.PHONY: python-sharedmod
+
+################################################################################
+# Create install & clean targets:
+#   python-install
+#   python-do-install
+#   python-clean
+#   python-distclean
+################################################################################
+
+python-INSTALL_HOOK = 1
+python-DISTCLEAN_HOOK = 1
+$(eval $(call configure-install-clean,python))
+
+python-install-hook:
+	$(BASE)/work/bin/python scripts/build-distutils-cfg.py
+
+python-distclean-hook:
+	rm -f ../src/python/Makefile.pre.in
+
+python-sharedmod-clean:
+	-@cd ../src/python && rm -rf build
+	-@rm -f timestamps/python-build
+	-@rm -f timestamps/python-install
+
+.PHONY: python-sharedmod-clean
+
+################################################################################
+# Generate diffs;
+################################################################################
+
+python-mingw-base-changes:
+	svn diff --old=$(SVN_BASE)/python/tags/$(PYTHON_VERSION) --new=$(SVN_BASE)/$(PYTHON_MINGW_BRANCH)
+
+python-mingw-branch-changes:
+	svn diff --old=$(SVN_BASE)/$(PYTHON_PREV_BRANCH) --new=$(SVN_BASE)/$(PYTHON_MINGW_BRANCH)
+
+test:: python-test
+
+python-test:
+	@if [ -f ../src/python/Makefile ]; then 					\
+	    echo "***** TESTING PYTHON *****";					\
+	    cd ../work/bin && ./python -E -tt ../lib/python2.6/test/regrtest.py;	\
+	fi
+
+################################################################################
+# Create a win32-like release directory;
+################################################################################
+
+python-win32-release:
+	(cd .. && rsync -av work/bin/python.exe work/bin/python26.dll Python26/)
+	(cd .. && rsync -av work/lib/python2.6/ Python/Lib)
+	rm -f ../Python26/Lib/distutils/distutils.cfg
+	(cd .. && rsync -av work/include/python2.6/ Python26/include)
+	(cd .. && rsync -av src/python26/README src/python26/LICENSE src/python26/Misc/NEWS Python26/)
+	@# Install sqlite dll;
+	if [ -f ../work/bin/libsqlite3-0.dll ]; then \
+	    (cd .. && rsync -av work/bin/libsqlite3-0.dll Python26/); \
+	fi
+	@# Install the curl dlls;
+	if [ -f ../work/bin/libcares-1.dll ]; then \
+	    (cd .. && rsync -av work/bin/libcares-1.dll Python26/); \
+	fi
+	if [ -f ../work/bin/libcurl-4.dll ]; then \
+	    (cd .. && rsync -av work/bin/libcurl-4.dll Python26/); \
+	fi
+	@# Install the wx dll;
+	if [ -f ../work/bin/cygwxmsw28ud_gcc_custom-0.dll ]; then \
+	    (cd .. && rsync -av work/bin/cygwxmsw28ud_gcc_custom-0.dll Python26/); \
+	fi
+
+.PHONY: python-win32-release
+
+################################################################################
+# Patches;
+#   python-patches
+#   python-patches-apply
+################################################################################
+
+# XXX XXX is this patch generation still what we want?
+PYTHON_MINGW_PATCH_TARGET = python/tags/mingw-2.5.1v2
+
+python-patches-check-versions:
+	@echo "SVN_BASE                  is $(SVN_BASE)"
+	@echo "PYTHON_VERSION          is $(PYTHON_VERSION)"
+	@echo "PYTHON_MINGW_PATCH_TARGET is $(PYTHON_MINGW_PATCH_TARGET)"
+
+python-patches:
+	svn diff --old=$(SVN_BASE)/python/tags/$(PYTHON_VERSION) --new=$(SVN_BASE)/$(PYTHON_MINGW_PATCH_TARGET) > patches/python/patches
+	echo "$(PYTHON_VERSION) to $(PYTHON_MINGW_PATCH_TARGET)" > patches/python/patch-version
+
+python-patches-apply:
+	cp patches/python/patches ../src/python/patches
+	@echo "Applying patches: $(shell cat patches/python/patch-version)"
+	-(cd ../src/python && patch -b -p0 < patches)
+
+.PHONY: python-patches python-patches-apply
