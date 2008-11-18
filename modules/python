@@ -201,19 +201,19 @@ python-win32-release:
 #   python-patches-apply
 ################################################################################
 
-PYTHON_MINGW_PATCH_TARGET = mingw_2_5_2_v0
+PYTHON_MINGW_PATCH_TARGET = mingw
 
 python-patches-check-versions:
 	@echo "PYTHON_VERSION          is $(PYTHON_VERSION)"
 	@echo "PYTHON_MINGW_PATCH_TARGET is $(PYTHON_MINGW_PATCH_TARGET)"
 
-python-patches: ;
-	git diff python_2_6 $(MINGW_TAG) . > patches/python/patches
+python-patches:
+	(cd ../src/python && git diff python_2_6 $(PYTHON_MINGW_PATCH_TARGET) . ) > patches/python/patches
 	echo "python 2.6 to $(PYTHON_MINGW_PATCH_TARGET)" > patches/python/patch-version
 
 python-patches-apply:
 	cp patches/python/patches ../src/python/patches
 	@echo "Applying patches: $(shell cat patches/python/patch-version)"
-	-(cd ../src/python && patch -b -p0 < patches)
+	-(cd ../src/python && patch -b -p1 < patches)
 
 .PHONY: python-patches python-patches-apply
