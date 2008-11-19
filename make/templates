@@ -259,6 +259,7 @@ $(1)-patches:
 	    diff -c $$$$file.orig $$$$file >> patches; \
 	done; \
 	exit 0
+	-@mkdir patches/$(1)
 	cp $(BASE)/src/$(1)/patches patches/$(1)/patches
 
 $(1)-patches-revert:

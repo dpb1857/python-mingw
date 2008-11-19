@@ -1,0 +1,19 @@
+*** ./Makefile.orig	2007-01-02 19:49:21.000000000 -0800
+--- ./Makefile	2008-11-19 11:38:29.000000000 -0800
+***************
+*** 21,27 ****
+  LDFLAGS=
+  
+  BIGFILES=-D_FILE_OFFSET_BITS=64
+! CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
+  
+  # Where you want it installed when you do 'make install'
+  PREFIX=/usr/local
+--- 21,27 ----
+  LDFLAGS=
+  
+  BIGFILES=-D_FILE_OFFSET_BITS=64
+! CFLAGS=-fPIC -Wall -Winline -O2 -g $(BIGFILES)
+  
+  # Where you want it installed when you do 'make install'
+  PREFIX=/usr/local

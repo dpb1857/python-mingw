@@ -14,8 +14,8 @@ PYTHON_PREV_BRANCH  = python/tags/mingw-2.5.1v1
 
 
 # XXX NOTE: 11/2/2008: no external libs for now while working on using git
-# EXTERNAL_LIBS = zlib bzip2 gdbm sqlite openssl
-EXTERNAL_LIBS = 
+EXTERNAL_LIBS = zlib bzip2 gdbm sqlite openssl
+# EXTERNAL_LIBS = 
 
 ifeq "$(PLATFORM)" "WIN32"
 PY_HOST_EXPR = --host=i686-pc-mingw32
