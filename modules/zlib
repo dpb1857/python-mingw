@@ -34,7 +34,7 @@ zlib-configure:
 	@if [ ! -f ../src/zlib/Makefile ]; then \
 	    echo "configure zlib"; \
 	    set -x; \
-	    cd ../src/zlib && ./configure --prefix=$(BASE)/work; \
+	    cd ../src/zlib && ./configure --prefix=$(BASE)/work --shared; \
 	fi
 
 .PHONY: zlib-configure
