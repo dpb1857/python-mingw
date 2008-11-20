@@ -6,7 +6,7 @@ FLUP_URL = http://www.saddi.com/software/flup/dist/flup-$(FLUP_VERSION).tar.gz
 modulelist::
 	@/bin/echo -e "flup:\t\t$(FLUP_VERSION)\t\tWSGI interfaces"
 
-flup: python25 setuptools flup-download flup-unpack flup-install
+flup: python setuptools flup-download flup-unpack flup-install
 
 .PHONY: flup
 

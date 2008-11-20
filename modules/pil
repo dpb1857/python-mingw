@@ -7,7 +7,7 @@ modulelist::
 	@/bin/echo -e "pil:\t\t$(PIL_VERSION)\t\tPython Imaging Library"
 
 # XXX more prereqs for pil;
-pil: python25 pil-download pil-unpack pil-install
+pil: python pil-download pil-unpack pil-install
 
 .PHONY: pil
 

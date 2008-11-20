@@ -6,7 +6,7 @@ APSW_URL = http://initd.org/pub/software/pysqlite/apsw/$(APSW_VERSION)/apsw-$(AP
 modulelist::
 	@/bin/echo -e "apsw:\t\t$(APSW_VERSION)\tAnother Python SQLite wrapper"
 
-apsw: sqlite python25 apsw-download apsw-unpack apsw-install
+apsw: sqlite python apsw-download apsw-unpack apsw-install
 
 .PHONY: apsw
 

@@ -6,7 +6,7 @@ PYINSTALLER_URL = http://pyinstaller.hpcf.upr.edu/source/$(PYINSTALLER_VERSION)/
 modulelist::
 	@/bin/echo -e "pyinstaller:\t$(PYINSTALLER_VERSION)\t\tGenerate a single executable"
 
-pyinstaller: python25 pyinstaller-download pyinstaller-unpack pyinstaller-install
+pyinstaller: python pyinstaller-download pyinstaller-unpack pyinstaller-install
 
 .PHONY: pyinstaller
 

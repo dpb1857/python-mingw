@@ -6,7 +6,7 @@ CHERRYPY_URL = http://download.cherrypy.org/cherrypy/$(CHERRYPY_VERSION)/CherryP
 modulelist::
 	@/bin/echo -e "cherrypy:\t$(CHERRYPY_VERSION)\t\tObject-oriented HTTP framework"
 
-cherrypy: python25 cherrypy-download cherrypy-unpack cherrypy-install
+cherrypy: python cherrypy-download cherrypy-unpack cherrypy-install
 
 .PHONY: cherrypy
 

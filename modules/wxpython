@@ -6,7 +6,7 @@ WX_URL = http://prdownloads.sourceforge.net/wxpython/wxPython-src-$(WX_VERSION).
 modulelist::
 	@/bin/echo -e "wxpython:\t$(WX_VERSION)\t\tPython interface to wxWidgets"
 
-wxpython: python25 wxpython-download wxpython-unpack wxpython-configure wxpython-build wxpython-install
+wxpython: python wxpython-download wxpython-unpack wxpython-configure wxpython-build wxpython-install
 
 .PHONY: wxpython
 

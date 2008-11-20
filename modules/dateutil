@@ -7,7 +7,7 @@ DATEUTIL_URL = http://labix.org/download/python-dateutil/python-dateutil-$(DATEU
 modulelist::
 	@/bin/echo -e "dateutil:\t$(DATEUTIL_VERSION)\t\tDate Utilities"
 
-dateutil: python25 setuptools dateutil-download dateutil-unpack dateutil-install
+dateutil: python setuptools dateutil-download dateutil-unpack dateutil-install
 
 .PHONY: dateutil
 

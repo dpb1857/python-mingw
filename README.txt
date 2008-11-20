@@ -55,13 +55,13 @@ get it via:
 
 Do the Build
 ------------
-  make python25
+  make python
 
 Run the Tests
 -------------
 To verify which modules are working and installed:
 
-  make python25-test
+  make python-test
 
 Reorganize the Layout
 ---------------------
@@ -70,7 +70,7 @@ as it would be for any other unix platform. To reorganize the layout
 so it more closely resembles the windows release from python.org, do
 the following:
 
-  make python25-win32-release
+  make python-win32-release
 
 Build Additional Modules
 ------------------------

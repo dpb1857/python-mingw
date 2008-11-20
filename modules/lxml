@@ -7,7 +7,7 @@ modulelist::
 	@/bin/echo -e "lxml:\t\t$(LXML_VERSION)\t\tlibxml2/libxslt wrapper"
 
 
-lxml: python25 libxml2 libxslt lxml-download lxml-unpack lxml-install
+lxml: python libxml2 libxslt lxml-download lxml-unpack lxml-install
 
 .PHONY: lxml
 

@@ -13,7 +13,7 @@ endif
 modulelist::
 	@/bin/echo -e "pycurl:\t\t$(PYCURL_VERSION)\t\tPython interface to the Curl library"
 
-pycurl: python25 curl pycurl-download pycurl-unpack pycurl-install
+pycurl: python curl pycurl-download pycurl-unpack pycurl-install
 
 .PHONY: pycurl
 

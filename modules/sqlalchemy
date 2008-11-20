@@ -6,7 +6,7 @@ SQLALCHEMY_URL = http://prdownloads.sourceforge.net/sqlalchemy/SQLAlchemy-$(SQLA
 modulelist::
 	@/bin/echo -e "sqlalchemy:\t$(SQLALCHEMY_VERSION)\t\tSQL Toolkit & Object Relational Manager"
 
-sqlalchemy: python25 sqlalchemy-download sqlalchemy-unpack sqlalchemy-install
+sqlalchemy: python sqlalchemy-download sqlalchemy-unpack sqlalchemy-install
 
 .PHONY: sqlalchemy
 

@@ -6,7 +6,7 @@ PYL_URL = http://downloads.osafoundation.org/PyLucene/src/PyLucene-src-$(PYL_VER
 modulelist::
 	@/bin/echo -e "pylucene:\t$(PYL_VERSION)\t\tPython interface to Lucene search library"
 
-pylucene: python25 libiconv pylucene-download pylucene-unpack pylucene-configure pylucene-build pylucene-install
+pylucene: python libiconv pylucene-download pylucene-unpack pylucene-configure pylucene-build pylucene-install
 
 .PHONY: pylucene
 

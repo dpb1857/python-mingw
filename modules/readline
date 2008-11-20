@@ -6,7 +6,7 @@ READLINE_URL = http://newcenturycomputers.net/projects/download.cgi/Readline-$(R
 modulelist::
 	@/bin/echo -e "readline:\t$(READLINE_VERSION)\t\tReadline for Windows"
 
-readline: python25 readline-download readline-unpack readline-install
+readline: python readline-download readline-unpack readline-install
 
 .PHONY: readline
 

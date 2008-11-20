@@ -7,7 +7,7 @@ modulelist::
 	@/bin/echo -e "setuptools:\t$(SETUPTOOLS_VERSION)\tSetup tools for Python"
 
 
-setuptools: python25 setuptools-download setuptools-install
+setuptools: python setuptools-download setuptools-install
 
 .PHONY: setuptools
 

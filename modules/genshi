@@ -6,7 +6,7 @@ GENSHI_URL = http://ftp.edgewall.com/pub/genshi/Genshi-$(GENSHI_VERSION).tar.gz
 modulelist::
 	@/bin/echo -e "genshi:\t\t$(GENSHI_VERSION)\t\tTemplating"
 
-genshi: python25 genshi-download genshi-unpack genshi-install
+genshi: python genshi-download genshi-unpack genshi-install
 
 .PHONY: genshi
 

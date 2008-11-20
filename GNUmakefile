@@ -53,7 +53,7 @@ include $(MODULE_FILES)
 
 top-level-help:
 	@echo
-	@echo "Type 'make most' to build python 2.5 with most add-on modules."
+	@echo "Type 'make most' to build python with most add-on modules."
 	@echo "Type 'make all' to build most + larger packages - pil, pylucene, and wxpython."
 	@echo "Type 'make test' to run tests on unpacked modules with a test target."
 	@echo
@@ -71,7 +71,7 @@ ifeq "$(PLATFORM)" "WIN32"
 endif
 	@echo "'make configuration' will regenerate the .configuration file."
 
-most:  python25 setuptools readline pyinstaller apsw pycurl cherrypy kid genshi sqlalchemy lxml flup
+most:  python setuptools readline pyinstaller apsw pycurl cherrypy kid genshi sqlalchemy lxml flup
 all:   most pil pylucene wxpython
 
 _clean:

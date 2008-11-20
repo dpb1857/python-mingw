@@ -6,7 +6,7 @@ KID_URL = http://www.kid-templating.org/dist/$(KID_VERSION)/kid-$(KID_VERSION).t
 modulelist::
 	@/bin/echo -e "kid:\t\t$(KID_VERSION)\t\tTemplating"
 
-kid: python25 kid-download kid-unpack kid-install
+kid: python kid-download kid-unpack kid-install
 
 .PHONY: kid
 
