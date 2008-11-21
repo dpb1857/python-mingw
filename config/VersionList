@@ -101,8 +101,10 @@ READLINE_VERSION = 1.7
 
 # http://peak.telecommunity.com/DevCenter/setuptools
 # browse versions at: http://cheeseshop.python.org/packages/2.5/s/setuptools/
+# 11/20/2008
+SETUPTOOLS_VERSION = 0.6c9-py2.6
 # 9/4/2007
-SETUPTOOLS_VERSION = 0.6c7-py2.5
+# SETUPTOOLS_VERSION = 0.6c7-py2.5
 # 5/31/2007
 # SETUPTOOLS_VERSION = 0.6c6-py2.5
 # 1/9/2007

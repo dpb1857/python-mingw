@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 
 # http://peak.telecommunity.com/DevCenter/setuptools
-SETUPTOOLS_URL = http://cheeseshop.python.org/packages/2.5/s/setuptools/setuptools-$(SETUPTOOLS_VERSION).egg
+SETUPTOOLS_URL = http://cheeseshop.python.org/packages/2.6/s/setuptools/setuptools-$(SETUPTOOLS_VERSION).egg
 
 modulelist::
 	@/bin/echo -e "setuptools:\t$(SETUPTOOLS_VERSION)\tSetup tools for Python"
