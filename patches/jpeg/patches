@@ -1,0 +1,19 @@
+*** ./makefile.cfg.orig	1998-03-21 11:08:57.000000000 -0800
+--- ./makefile.cfg	2008-11-20 14:43:02.000000000 -0800
+***************
+*** 23,29 ****
+  CC= @CC@
+  
+  # You may need to adjust these cc options:
+! CFLAGS= @CFLAGS@ @CPPFLAGS@ @INCLUDEFLAGS@
+  # Generally, we recommend defining any configuration symbols in jconfig.h,
+  # NOT via -D switches here.
+  # However, any special defines for ansi2knr.c may be included here:
+--- 23,29 ----
+  CC= @CC@
+  
+  # You may need to adjust these cc options:
+! CFLAGS= -fPIC @CFLAGS@ @CPPFLAGS@ @INCLUDEFLAGS@
+  # Generally, we recommend defining any configuration symbols in jconfig.h,
+  # NOT via -D switches here.
+  # However, any special defines for ansi2knr.c may be included here:

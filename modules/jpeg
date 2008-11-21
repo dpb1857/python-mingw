@@ -48,3 +48,12 @@ $(eval $(call configure-build,jpeg))
 jpeg-ADDL_INSTALL_TARGETS = install-lib install-headers
 $(eval $(call configure-install-clean,jpeg))
 
+
+################################################################################
+# Patches;
+#   jpeg-patches
+#   jpeg-patches-revert
+#   jpeg-patches-apply
+################################################################################
+
+$(eval $(call patches,jpeg))
