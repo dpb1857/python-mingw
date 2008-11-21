@@ -8,7 +8,7 @@
   #undef vsnprintf
 + 
 + 
-+ # XXX dpb added;
++ /* XXX dpb added; */
 + 
 + #if defined (__MINGW32__) && !defined (DLL_EXPORT)
 + #define LIBXML_STATIC
