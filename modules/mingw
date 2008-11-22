@@ -13,10 +13,10 @@ MINGW_FILES =  \
 DL_FILES = $(foreach file,$(MINGW_FILES),../download/$(file))
 
 
+ifeq "$(PLATFORM)" "WIN32"
 modulelist::
 	@/bin/echo -e "mingw:\t\tVARIOUS\t\tMingw Compiler Suite"
 
-ifeq "$(PLATFORM)" "WIN32"
 mingw: mingw-help
 
 mingw-help:

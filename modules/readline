@@ -3,12 +3,14 @@
 # http://newcenturycomputers.net/projects/readline.html
 READLINE_URL = http://newcenturycomputers.net/projects/download.cgi/Readline-$(READLINE_VERSION).zip
 
+ifeq "$(PLATFORM)" "WIN32"
 modulelist::
 	@/bin/echo -e "readline:\t$(READLINE_VERSION)\t\tReadline for Windows"
 
 readline: python readline-download readline-unpack readline-install
 
 .PHONY: readline
+endif
 
 ################################################################################
 # Setup: create targets for:
