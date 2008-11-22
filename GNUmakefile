@@ -28,8 +28,6 @@ PATH := $(BASE)/work/bin:$(MINGW_BASE)/bin:$(PATH)
 else
 # On Unix, we need to add $(BASE)/work/bin to the path to find wx-config;
 PATH := $(BASE)/work/bin:$(PATH)
-LD_LIBRARY_PATH := $(BASE)/work/lib
-export LD_LIBRARY_PATH
 endif
 
 export MAKE
