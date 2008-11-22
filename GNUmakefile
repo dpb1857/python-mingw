@@ -170,4 +170,19 @@ endif
 	@rm -f ../.configuration
 	ln -s $(MAKEFILES)/.configuration ../.configuration
 
+status:
+	@echo "*****************************"
+	@echo "***** top-level status: *****"
+	@echo "*****************************"
+	cd .. && git status
+	@echo "*****************************"
+	@echo "***** makefiles status: *****"
+	@echo "*****************************"
+	git status
+	@echo "*****************************"
+	@echo "***** python status:    *****"
+	@echo "*****************************"
+	cd ../src/python && git status
+
+
 .PHONY: default all _clean clean distclean update status configuration force_configuration
