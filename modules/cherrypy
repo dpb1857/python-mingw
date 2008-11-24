@@ -28,3 +28,12 @@ $(eval $(call setup,cherrypy,$(CHERRYPY_URL),$(CHERRYPY_VERSION),CherryPy-$(CHER
 
 $(eval $(call pymodule-install-clean,cherrypy))
 
+
+################################################################################
+# Patches;
+#   cherrypy-patches
+#   cherrypy-patches-revert
+#   cherrypy-patches-apply
+################################################################################
+
+$(eval $(call patches,cherrypy))
