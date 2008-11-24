@@ -233,6 +233,7 @@ $(1)-clean:
 	    rm -rf build; 		\
 	    if [ -f Makefile ]; then 	\
 		$(MAKE) clean;		\
+		/bin/true;		\
 	    fi				\
 	fi
 	rm -f timestamps/$(1)-*
