@@ -76,7 +76,7 @@ most:  python setuptools readline apsw pycurl cherrypy kid genshi sqlalchemy lxm
 all:   most pil wxpython
 
 _clean:
-	rm -f *~
+	rm -f *~ .*~
 	rm -rf timestamps
 
 clean:: _clean
@@ -85,6 +85,7 @@ distclean:: _clean work-clean
 	rm -f .configuration
 	rm -f ../.configuration
 	rm -f *.log
+	rm -f MakeEnv
 
 timestamps:
 	mkdir timestamps
