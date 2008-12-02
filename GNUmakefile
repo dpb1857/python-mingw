@@ -41,7 +41,7 @@ help:: top-level-help
 ##################################################
 
 include config/module-config
-include config/VersionList
+include config/version-list
 MODULE_FILES = $(wildcard modules/*[^~\#])
 include $(MODULE_FILES)
 

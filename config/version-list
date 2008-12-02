@@ -13,8 +13,10 @@ C-ARES_VERSION = 1.5.1
 # C-ARES_VERSION = 1.4.0
 
 # http://www.cherrypy.org/
+# 11/22/2008
+CHERRYPY_VERSION = 3.1.1
 # 08/07/2007
-CHERRYPY_VERSION = 3.0.2
+# CHERRYPY_VERSION = 3.0.2 # Doesn't work with 2.6
 
 # http://curl.haxx.se/
 # 10/29/2007
