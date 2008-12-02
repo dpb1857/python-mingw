@@ -1,7 +1,8 @@
 # -*- Makefile -*-
 
 # http://pylucene.osafoundation.org/
-PYL_URL = http://downloads.osafoundation.org/PyLucene/src/PyLucene-src-$(PYL_VERSION).tar.gz
+PYL_URL = http://downloads.osafoundation.org/PyLucene/jcc/PyLucene-$(PYL_VERSION)-src-jcc.tar.gz
+# PYL_URL = http://downloads.osafoundation.org/PyLucene/src/PyLucene-src-$(PYL_VERSION).tar.gz
 
 modulelist::
 	@/bin/echo -e "pylucene:\t$(PYL_VERSION)\t\tPython interface to Lucene search library"
