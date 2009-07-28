@@ -70,7 +70,7 @@ endif
 	@echo "'make configuration' will regenerate the .configuration file."
 
 # NOTE: drop pyinstaller for now, support has moved;
-most:  python setuptools readline apsw pycurl cherrypy kid genshi sqlalchemy lxml flup
+most:  python setuptools readline apsw sqlalchemy flup # lxml pycurl
 # NOTE: pylucene doesn't want to build, newer versions use a different mechanism;
 # all:   most pil pylucene wxpython
 all:   most pil wxpython
