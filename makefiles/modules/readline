@@ -10,6 +10,9 @@ modulelist::
 readline: python readline-download readline-unpack readline-install
 
 .PHONY: readline
+else
+# Noop on unix;
+readline: ;
 endif
 
 ################################################################################
