@@ -1,6 +1,13 @@
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
-index 0000000..e69de29
+index 0000000..4ba4778
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++*.o
++*.a
++*.pyc
++python
 diff --git a/Doc/tools/roman.pyc b/Doc/tools/roman.pyc
 deleted file mode 100644
 index e4563b4..0000000
@@ -291,7 +298,7 @@ index 0000000..fb62d97
 @@ -0,0 +1 @@
 +Empty file
 diff --git a/Lib/site.py b/Lib/site.py
-index 21c7db2..85d1bb5 100644
+index 21c7db2..ddfb7ea 100644
 --- a/Lib/site.py
 +++ b/Lib/site.py
 @@ -99,6 +99,8 @@ def removeduppaths():
@@ -323,6 +330,18 @@ index 21c7db2..85d1bb5 100644
  
          if sys.platform == "darwin":
              # for framework builds *only* we add the standard Apple
+@@ -436,7 +431,10 @@ def aliasmbcs():
+     while they are always available as "mbcs" in each locale. Make
+     them usable by aliasing to "mbcs" in such a case."""
+     if sys.platform == 'win32':
+-        import locale, codecs
++        try:
++            import locale, codecs
++        except:
++            return
+         enc = locale.getdefaultlocale()[1]
+         if enc.startswith('cp'):            # "cp***" ?
+             try:
 diff --git a/Makefile.pre.in b/Makefile.pre.in
 deleted file mode 100644
 index 8451445..0000000
@@ -2854,7 +2873,7 @@ index 04b3332..b742da4 100644
  PyDoc_STRVAR(gdbmmodule__doc__,
  "This module provides an interface to the GNU DBM (GDBM) library.\n\
 diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
-index 79c3a44..0c27110 100644
+index 79c3a44..36241bc 100644
 --- a/Modules/posixmodule.c
 +++ b/Modules/posixmodule.c
 @@ -131,6 +131,17 @@ corresponding Unix manual entries for more information on calls.");
@@ -2928,36 +2947,19 @@ index 79c3a44..0c27110 100644
  	res = mkdir(path);
  #else
  	res = mkdir(path, mode);
-@@ -8184,6 +8196,8 @@ posix_getloadavg(PyObject *self, PyObject *noargs)
- }
- #endif
+@@ -8186,6 +8198,12 @@ posix_getloadavg(PyObject *self, PyObject *noargs)
  
-+/* NOTE dpb - turn on urandom() if we can get this to compile */
-+#ifndef __MINGW32__
  #ifdef MS_WINDOWS
  
- PyDoc_STRVAR(win32_urandom__doc__,
-@@ -8259,6 +8273,7 @@ win32_urandom(PyObject *self, PyObject *args)
- 	return result;
- }
- #endif
-+#endif /* !__MINGW32 __ */
- 
- #ifdef __VMS
- /* Use openssl random routine */
-@@ -8600,9 +8615,12 @@ static PyMethodDef posix_methods[] = {
- #ifdef HAVE_GETLOADAVG
- 	{"getloadavg",	posix_getloadavg, METH_NOARGS, posix_getloadavg__doc__},
- #endif
-+	/* NOTE dpb - can't compile urandom() with  mingw32 at this time */
-+#ifndef __MINGW32__
-  #ifdef MS_WINDOWS
-  	{"urandom", win32_urandom, METH_VARARGS, win32_urandom__doc__},
-  #endif
++#ifdef __MINGW32__
++#define CRYPT_VERIFYCONTEXT 0xf0000000
++#define PROV_RSA_FULL 1
++#define HCRYPTPROV unsigned long
 +#endif
-  #ifdef __VMS
-  	{"urandom", vms_urandom, METH_VARARGS, vms_urandom__doc__},
-  #endif
++
+ PyDoc_STRVAR(win32_urandom__doc__,
+ "urandom(n) -> str\n\n\
+ Return a string of n random bytes suitable for cryptographic use.");
 @@ -8891,7 +8909,7 @@ all_ins(PyObject *d)
  }
  
@@ -2995,6 +2997,26 @@ index 2638bdc..2e6e591 100644
  			o = fd2obj[j].obj;
  			fd2obj[j].obj = NULL;
  			/* transfer ownership */
+diff --git a/Modules/socketmodule.c b/Modules/socketmodule.c
+index deff28a..6cdc651 100644
+--- a/Modules/socketmodule.c
++++ b/Modules/socketmodule.c
+@@ -2827,6 +2827,15 @@ PyDoc_STRVAR(shutdown_doc,
+ Shut down the reading side of the socket (flag == SHUT_RD), the writing side\n\
+ of the socket (flag == SHUT_WR), or both ends (flag == SHUT_RDWR).");
+ 
++
++/* XXX dpb: value from web search */
++#ifndef SIO_RCVALL
++#define SIO_RCVALL 0x98000001
++#define RCVALL_OFF 0
++#define RCVALL_ON  1
++#define RCVALL_SOCKETLEVELONLY 2
++#endif
++
+ #if defined(MS_WINDOWS) && defined(SIO_RCVALL)
+ static PyObject*
+ sock_ioctl(PySocketSockObject *s, PyObject *arg)
 diff --git a/Modules/timingmodule.c b/Modules/timingmodule.c
 index 0da5c6b..044fa14 100644
 --- a/Modules/timingmodule.c
@@ -3086,7 +3108,7 @@ index 74d3343..0c33970 100644
  	ADD_INT(REG_NONE);
  	ADD_INT(REG_SZ);
 diff --git a/PC/getpathp.c b/PC/getpathp.c
-index e62b936..a7d1a13 100644
+index e62b936..f98db08 100644
 --- a/PC/getpathp.c
 +++ b/PC/getpathp.c
 @@ -85,6 +85,10 @@
@@ -3094,7 +3116,7 @@ index e62b936..a7d1a13 100644
  #endif
  
 +#ifndef LANDMARK2
-+#define LANDMARK2 "..\\lib\\python2.5\\os.py"
++#define LANDMARK2 "..\\lib\\python2.6\\os.py"
 +#endif
 +
  static char prefix[MAXPATHLEN+1];
@@ -5150,26 +5172,26 @@ index 0000000..5ab1351
 +_winreg     ../PC/_winreg.c
 +winsound    ../PC/winsound.c -lwinmm
 diff --git a/Python/dynload_win.c b/Python/dynload_win.c
-index 7c71d9c..79a2465 100644
+index 7c71d9c..b52e78e 100644
 --- a/Python/dynload_win.c
 +++ b/Python/dynload_win.c
-@@ -9,7 +9,16 @@
- #include <ctype.h>
+@@ -1,7 +1,16 @@
  
- #include "importdl.h"
+ /* Support for dynamic loading of extension modules */
+ 
 +#ifdef __MINGW32__
 +/* MINGW: We define our own strcasecmp in this file, so rename the function
 + * definition pulled in (eventually) from the mingw string.h;
 + */
 +#define strcasecmp XXstrcasecmp
- #include <windows.h>
+ #include "Python.h"
 +#undef strcasecmp
 +#else
-+#include <windows.h>
++#include "Python.h"
 +#endif
  
- const struct filedescr _PyImport_DynLoadFiletab[] = {
- #ifdef _DEBUG
+ #ifdef HAVE_DIRECT_H
+ #include <direct.h>
 diff --git a/README-mingw.txt b/README-mingw.txt
 new file mode 100644
 index 0000000..c46a61e
@@ -5178,7 +5200,7 @@ index 0000000..c46a61e
 @@ -0,0 +1 @@
 +See the file PCmingw/README.txt.
 diff --git a/configure b/configure
-index ffc351d..112a3e6 100755
+index ffc351d..ad0875e 100755
 --- a/configure
 +++ b/configure
 @@ -3418,6 +3418,24 @@ echo "$as_me: WARNING:
@@ -5291,7 +5313,27 @@ index ffc351d..112a3e6 100755
  
  { echo "$as_me:$LINENO: checking MACHDEP_OBJS" >&5
  echo $ECHO_N "checking MACHDEP_OBJS... $ECHO_C" >&6; }
-@@ -24386,7 +24431,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+@@ -20056,12 +20101,13 @@ cat >>confdefs.h <<\_ACEOF
+ #define HAVE_ST_BLOCKS 1
+ _ACEOF
+ 
+-else
+-  case " $LIBOBJS " in
+-  *" fileblocks.$ac_objext "* ) ;;
+-  *) LIBOBJS="$LIBOBJS fileblocks.$ac_objext"
+- ;;
+-esac
++# XXX dpb: comment this out so we don't try to link with fileblocks.o;
++# else
++#   case " $LIBOBJS " in
++#   *" fileblocks.$ac_objext "* ) ;;
++#   *) LIBOBJS="$LIBOBJS fileblocks.$ac_objext"
++#  ;;
++# esac
+ 
+ fi
+ 
+@@ -24386,7 +24432,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
  { echo "$as_me:$LINENO: checking for /dev/ptmx" >&5
  echo $ECHO_N "checking for /dev/ptmx... $ECHO_C" >&6; }
  
@@ -5300,7 +5342,7 @@ index ffc351d..112a3e6 100755
  then
    { echo "$as_me:$LINENO: result: yes" >&5
  echo "${ECHO_T}yes" >&6; }
-@@ -25819,7 +25864,11 @@ fi
+@@ -25819,7 +25865,11 @@ fi
  echo "creating Modules/Setup"
  if test ! -f Modules/Setup
  then
@@ -5313,10 +5355,10 @@ index ffc351d..112a3e6 100755
  
  echo "creating Modules/Setup.local"
 diff --git a/pyconfig.h.in b/pyconfig.h.in
-index 852e671..11706ca 100644
+index 852e671..e9f8fa0 100644
 --- a/pyconfig.h.in
 +++ b/pyconfig.h.in
-@@ -1079,5 +1079,59 @@
+@@ -1079,5 +1079,60 @@
  #define STRICT_SYSV_CURSES /* Don't use ncurses extensions */
  #endif
  
@@ -5329,17 +5371,13 @@ index 852e671..11706ca 100644
 +
 +#define MS_WIN32
 +#define MS_WINDOWS
-+#define PYTHONPATH "./Lib;./Lib/lib-dynload;./build/lib.win32-2.5;./lib/python2.5;./lib/python2.5/lib-dynload"
++#define PYTHONPATH "./Lib;./Lib/lib-dynload;./build/lib.win32-2.6;./lib/python2.6;./lib/python2.6/lib-dynload"
 +#define NT_THREADS
 +#define WITH_THREAD
 +
 +/*
 + * Note: the following pieces were copied directly from PC/pyconfig.h;
 + */
-+
-+/* Define if you don't have tm_zone but do have the external array
-+   tzname.  */
-+#define HAVE_TZNAME
 +
 +/* Use Python's own small-block memory-allocator. */
 +#define WITH_PYMALLOC 1
@@ -5372,12 +5410,17 @@ index 852e671..11706ca 100644
 +   socket handles greater than FD_SETSIZE */
 +#define Py_SOCKET_FD_CAN_BE_GE_FD_SETSIZE
 +
++/* Additional defines for 2.6 using mingw */
++
++#define HAVE_ADDRINFO
++#define HAVE_SOCKADDR_STORAGE
++
 +#endif /* __MINGW32__ */
 +
  #endif /*Py_PYCONFIG_H*/
  
 diff --git a/setup.py b/setup.py
-index 0896aa6..bb4e984 100644
+index 0896aa6..81cf90f 100644
 --- a/setup.py
 +++ b/setup.py
 @@ -19,10 +19,21 @@ from distutils.command.install_lib import install_lib
@@ -5507,7 +5550,17 @@ index 0896aa6..bb4e984 100644
  
          if sqlite_incdir and sqlite_libdir:
              sqlite_srcs = ['_sqlite/cache.c',
-@@ -1424,7 +1459,9 @@ class PyBuildExt(build_ext):
+@@ -1303,7 +1338,8 @@ class PyBuildExt(build_ext):
+ 
+         exts.append ( Extension('_multiprocessing', multiprocessing_srcs,
+                                  define_macros=macros.items(),
+-                                 include_dirs=["Modules/_multiprocessing"]))
++                                 include_dirs=["Modules/_multiprocessing"],
++                                 libraries=libraries))
+         # End multiprocessing
+ 
+ 
+@@ -1424,7 +1460,9 @@ class PyBuildExt(build_ext):
          self.extensions.extend(exts)
  
          # Call the method for detecting whether _tkinter can be compiled
@@ -5518,7 +5571,7 @@ index 0896aa6..bb4e984 100644
  
          if '_tkinter' not in [e.name for e in self.extensions]:
              missing.append('_tkinter')
-@@ -1668,6 +1705,10 @@ class PyBuildExt(build_ext):
+@@ -1668,6 +1706,10 @@ class PyBuildExt(build_ext):
                  mkpath(ffi_builddir)
                  config_args = []
  
@@ -5529,7 +5582,7 @@ index 0896aa6..bb4e984 100644
                  # Pass empty CFLAGS because we'll just append the resulting
                  # CFLAGS to Python's; -g or -O2 is to be avoided.
                  cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
-@@ -1680,6 +1721,12 @@ class PyBuildExt(build_ext):
+@@ -1680,6 +1722,12 @@ class PyBuildExt(build_ext):
  
              fficonfig = {}
              execfile(ffi_configfile, globals(), fficonfig)
@@ -5542,7 +5595,7 @@ index 0896aa6..bb4e984 100644
              ffi_srcdir = os.path.join(fficonfig['ffi_srcdir'], 'src')
  
              # Add .S (preprocessed assembly) to C compiler source extensions.
-@@ -1739,6 +1786,10 @@ class PyBuildExt(build_ext):
+@@ -1739,6 +1787,10 @@ class PyBuildExt(build_ext):
                               sources=['_ctypes/_ctypes_test.c'])
          self.extensions.extend([ext, ext_test])
  
@@ -5553,7 +5606,7 @@ index 0896aa6..bb4e984 100644
          if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
              return
  
-@@ -1876,4 +1927,14 @@ def main():
+@@ -1876,4 +1928,14 @@ def main():
  
  # --install-platlib
  if __name__ == '__main__':
