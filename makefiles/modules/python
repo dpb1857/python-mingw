@@ -208,8 +208,8 @@ python-patches-check-versions:
 	@echo "PYTHON_MINGW_PATCH_TARGET is $(PYTHON_MINGW_PATCH_TARGET)"
 
 python-patches:
-	(cd ../src/python && git diff python_2_6 $(PYTHON_MINGW_PATCH_TARGET) . ) > patches/python/patches
-	echo "python 2.6 to $(PYTHON_MINGW_PATCH_TARGET)" > patches/python/patch-version
+	(cd ../src/python && git diff python_2_6_2 $(PYTHON_MINGW_PATCH_TARGET) . ) > patches/python/patches
+	echo "python 2.6.2 to $(PYTHON_MINGW_PATCH_TARGET)" > patches/python/patch-version
 
 python-patches-apply:
 	cp patches/python/patches ../src/python/patches
